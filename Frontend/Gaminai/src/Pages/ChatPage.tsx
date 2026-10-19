@@ -20,6 +20,7 @@ import BrandBadge from '../components/BrandBadge';
 import MarkdownText from '../components/MarkdownText';
 import ImageModal from '../components/ImageModal';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { isGuestMode } from '../lib/guest';
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ??
@@ -964,8 +965,8 @@ const ChatPage = () => {
 
       setAuthReady(true);
 
-      // Redirect to auth if no user
-      if (!currentUser) {
+      // Redirect to auth if no user (guests may stay)
+      if (!currentUser && !isGuestMode()) {
         navigate('/auth');
       }
     }
@@ -976,7 +977,7 @@ const ChatPage = () => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setAuthReady(true);
-      if (!currentUser) {
+      if (!currentUser && !isGuestMode()) {
         navigate('/auth');
       }
     });
@@ -1447,12 +1448,14 @@ const ChatPage = () => {
       return;
     }
 
-    if (!user) {
+    const isGuest = !user && isGuestMode();
+    if (!user && !isGuest) {
       navigate('/auth');
       return;
     }
 
-    const isFollowUp = Boolean(activeConversationId);
+    // Guests get single-shot answers: nothing is persisted server-side to follow up on.
+    const isFollowUp = !isGuest && Boolean(activeConversationId);
     const userMessage: ChatMessage = {
       id: makeId('user'),
       role: 'user',
@@ -1502,7 +1505,8 @@ const ChatPage = () => {
 
     try {
       const jwt = await getAccessToken();
-      const response = await fetch(`${API_BASE_URL}${isFollowUp ? '/api/AI/follow_up' : '/api/AI'}`, {
+      const endpoint = isGuest ? '/api/AI/guest' : isFollowUp ? '/api/AI/follow_up' : '/api/AI';
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1521,7 +1525,8 @@ const ChatPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Agent request failed with ${response.status}`);
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error ?? `Agent request failed with ${response.status}`);
       }
 
       const responseConversationId = response.headers.get('X-Conversation-ID');

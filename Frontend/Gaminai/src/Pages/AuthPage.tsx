@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import type { Provider } from '@supabase/supabase-js';
 import BrandBadge from '../components/BrandBadge';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { setGuestMode } from '../lib/guest';
 
 const providers: Array<{ id: Provider; label: string; description: string }> = [
   {
@@ -55,6 +56,7 @@ const AuthPage = () => {
     }
 
     setLoadingProvider(provider);
+    setGuestMode(false);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -112,6 +114,17 @@ const AuthPage = () => {
               follow-up work attached to your conversation.
             </p>
           </div>
+
+          <button
+            className="guest-button"
+            onClick={() => {
+              setGuestMode(true);
+              navigate('/');
+            }}
+            type="button"
+          >
+            Try it as a guest. No sign-in needed.
+          </button>
 
           {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
         </section>

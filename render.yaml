@@ -1,0 +1,27 @@
+# Render Blueprint: free web service for the Express API.
+services:
+  - type: web
+    name: gaminai-api
+    runtime: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: Groq_API_Key
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

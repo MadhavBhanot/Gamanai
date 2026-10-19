@@ -1,0 +1,14 @@
+name: Keep demo warm
+
+# Render free tier sleeps after ~15 min idle; Supabase free pauses after ~7 days idle.
+# Pings /health (which also queries the DB) every 10 min, 08:00–23:00 IST.
+on:
+  schedule:
+    - cron: "*/10 2-17 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --retry 3 --retry-delay 20 --max-time 90 "${{ secrets.BACKEND_URL }}/health"

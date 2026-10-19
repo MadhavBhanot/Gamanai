@@ -2360,3 +2360,22 @@ h2 {
   text-align: center;
   pointer-events: none;
 }
+
+.guest-button {
+  align-self: flex-start;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  opacity: 0.75;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.guest-button:hover,
+.guest-button:focus-visible {
+  opacity: 1;
+}
