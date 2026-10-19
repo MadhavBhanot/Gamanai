@@ -23,17 +23,15 @@ export function resolveChain(specs: string) {
 }
 
 const DEFAULT_ANSWER_MODELS = [
-  process.env.GEMINI_API_KEY ? "google:gemini-2.5-flash" : null,
+  process.env.GEMINI_API_KEY ? "google:gemini-3.5-flash-lite" : null, // free-tier TTFT ~0.8s; 3.8-flash queues 40s+
   "groq:qwen/qwen3.8-27b",
 ].filter(Boolean).join(",");
 
 /** Ordered fallback chain: the first model serves, later ones take over if it fails before streaming. */
 export const ANSWER_CHAIN = resolveChain(process.env.ANSWER_MODELS ?? DEFAULT_ANSWER_MODELS);
 
-/** Provider-specific knobs. Gemini thinking adds seconds of latency for a grounded-summary task, so keep it minimal. */
+/** Provider-specific knobs. Gemini thinking adds latency for a grounded-summary task, so keep it at the lowest level 3.x Flash accepts. */
 export function providerOptionsFor(ref: ModelRef) {
   if (ref.provider !== "google") return undefined;
-  return /gemini-2\.5/.test(ref.modelId)
-    ? { google: { thinkingConfig: { thinkingBudget: 0 } } }
-    : { google: { thinkingConfig: { thinkingLevel: "minimal" as const } } };
+  return { google: { thinkingConfig: { thinkingLevel: (process.env.GEMINI_THINKING_LEVEL ?? "low") as "low" } } };
 }

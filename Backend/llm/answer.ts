@@ -55,6 +55,7 @@ export async function generateAnswer(
         maxRetries,
         abortSignal: AbortSignal.timeout(ANSWER_TIMEOUT_MS),
         providerOptions: providerOptionsFor(ref),
+        onError: () => {}, // errors surface as "error" parts below; the SDK default would also console.error them
       });
 
       let promptTokens = 0;

@@ -1,12 +1,13 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import { truncateText } from "../lib/text";
-import { providerOptionsFor, resolveModel } from "../llm/providers";
+import { resolveModel } from "../llm/providers";
 import type { WebSearchResult } from "../retrieval/search";
 import type { EvalCase } from "./metrics";
 
-// Ideally a different model family from the answerer, to reduce self-preference bias.
-export const JUDGE = resolveModel(process.env.JUDGE_MODEL ?? "groq:openai/gpt-oss-120b");
+// A different model (and quota) from the answerer. Same family as a Gemini answerer, so self-preference
+// bias is possible: the human-label calibration (calibrate.ts) is the check on that.
+export const JUDGE = resolveModel(process.env.JUDGE_MODEL ?? "google:gemini-3.6-flash");
 
 const verdictSchema = z.object({
   key_facts_covered: z.array(z.boolean()),
@@ -57,7 +58,10 @@ export async function judgeAnswer(
         maxOutputTokens: 2000,
         maxRetries: 0, // the eval runner owns rate-limit retries and pacing
         abortSignal: AbortSignal.timeout(90_000),
-        providerOptions: JUDGE.provider === "groq" ? { groq: { reasoningEffort: "low" } } : providerOptionsFor(JUDGE),
+        // A little reasoning makes claim-by-claim grading more careful
+        providerOptions: JUDGE.provider === "groq"
+          ? { groq: { reasoningEffort: "low" } }
+          : { google: { thinkingConfig: { thinkingLevel: "low" as const } } },
       });
       if (output.key_facts_covered.length !== testCase.key_facts.length) {
         throw new Error(`judge returned ${output.key_facts_covered.length} facts, expected ${testCase.key_facts.length}`);
