@@ -14,3 +14,5 @@ Preqz/
 *.md
 .claude/
 Backend/evals/results/.checkpoint_*
+# personal resume drafts (phone number etc.)
+resume/
