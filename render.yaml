@@ -19,6 +19,8 @@ services:
         sync: false
       - key: Groq_API_Key
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
       - key: VITE_SUPABASE_URL
         sync: false
       - key: VITE_SUPABASE_SECRET_KEY
