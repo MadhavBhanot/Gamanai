@@ -14,7 +14,9 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { generateAnswer, prepareAnswer } from "../llm/answer";
+import { CONTEXT_MODE, generateAnswer, prepareAnswer, type ContextMode } from "../llm/answer";
+import { formatSources } from "../llm/buildPrompt";
+import { setEmbeddingLimiter } from "../retrieval/embed";
 import { ANSWER_CHAIN, resolveModel, type ModelRef } from "../llm/providers";
 import { withTimeout } from "../lib/timeout";
 import { getWebSearchResults } from "../retrieval/search";
@@ -22,7 +24,9 @@ import { JUDGE, judgeAnswer } from "./judge";
 import { estimateTokens, parseRetryDelayMs, TokenPacer } from "./pacer";
 import {
   citationValidity,
+  extractCitationMarkers,
   extractCitedUrls,
+  markerValidity,
   mean,
   parseAnswerSections,
   percentile,
@@ -32,7 +36,8 @@ import {
 const EVAL_DIR = __dirname.includes(`${path.sep}dist${path.sep}`)
   ? path.resolve(__dirname, "../../evals")
   : __dirname;
-const CACHE_DIR = path.join(EVAL_DIR, "cache");
+// v2 = search results with full page text (rawContent), needed for chunk retrieval
+const CACHE_DIR = path.join(EVAL_DIR, "cache", "v2");
 const RESULTS_DIR = path.join(EVAL_DIR, "results");
 const PUBLIC_INDEX = path.resolve(EVAL_DIR, "../../Frontend/Gaminai/public/evals.json");
 
@@ -44,8 +49,14 @@ const { values: args } = parseArgs({
     concurrency: { type: "string", default: "2" },
     fresh: { type: "boolean", default: false },
     model: { type: "string" }, // provider:model to evaluate; defaults to the app's primary model
+    retrieval: { type: "string" }, // hybrid | vector | fts | snippets; defaults to RETRIEVAL_MODE
   },
 });
+
+const RETRIEVAL = (args.retrieval ?? CONTEXT_MODE) as ContextMode;
+// Gemini's free embedding tier allows 100 texts/min; pace well under it (bursts across minute boundaries
+// still tripped 429s at 90) instead of letting questions fall back to snippets.
+setEmbeddingLimiter(new TokenPacer(Number(process.env.EVAL_EMBED_RPM || 60)));
 
 // One fixed model per run (no fallback), so the numbers describe a single model.
 const ANSWER = args.model ? resolveModel(args.model) : ANSWER_CHAIN[0];
@@ -129,23 +140,24 @@ function loadCases(): EvalCase[] {
 }
 
 async function evaluate(testCase: EvalCase) {
-  const prepared = await prepareAnswer(testCase.query, [], cachedSearch);
+  const prepared = await prepareAnswer(testCase.query, [], cachedSearch, RETRIEVAL);
   const answerEstimate = estimateTokens(JSON.stringify(prepared.messages)) + ANSWER_MAX_TOKENS;
   const answer = await withRateLimitRetry(async () => {
     await paced(ANSWER, answerEstimate);
     return generateAnswer(prepared.messages, undefined, { chain: [ANSWER], maxRetries: 0 });
   });
   const parsed = parseAnswerSections(answer.content);
-  // Judge input ≈ instructions + snippets (600 chars each) + answer
+  // Judge input ≈ instructions + the numbered passages + answer
   const judgeEstimate =
-    estimateTokens(parsed.answer) + prepared.results.length * 180 + 600 + JUDGE_MAX_TOKENS;
+    estimateTokens(parsed.answer + formatSources(prepared.contexts)) + 700 + JUDGE_MAX_TOKENS;
   const verdict = await withRateLimitRetry(async () => {
     await paced(JUDGE, judgeEstimate);
-    return judgeAnswer(testCase, prepared.results, parsed.answer);
+    return judgeAnswer(testCase, prepared.contexts, parsed.answer);
   });
 
   const factCoverage = verdict.key_facts_covered.filter(Boolean).length / testCase.key_facts.length;
   const cited = extractCitedUrls(parsed.answer);
+  const markers = extractCitationMarkers(parsed.answer);
 
   return {
     id: testCase.id,
@@ -155,8 +167,14 @@ async function evaluate(testCase: EvalCase) {
       ? Number(Boolean(verdict.handled_false_premise))
       : verdict.contradicts_key_facts ? 0 : factCoverage,
     faithfulness: verdict.claims_total ? verdict.claims_supported / verdict.claims_total : null,
-    citationValidity: citationValidity(cited, prepared.results.map((r) => r.url), prepared.images),
-    hasCitation: cited.length > 0,
+    // [n] markers are the citation format since Phase 3; bare URLs were the only kind before
+    citationValidity: markers.length
+      ? markerValidity(markers, prepared.contexts.length)
+      : citationValidity(cited, prepared.results.map((r) => r.url), prepared.images),
+    citationPrecision: verdict.citations_total ? verdict.citations_supported / verdict.citations_total : null,
+    hasCitation: markers.length > 0 || cited.length > 0,
+    contextMode: prepared.contextMode,
+    contextChars: formatSources(prepared.contexts).length,
     formatOk: parsed.formatOk,
     ttftMs: Math.round(answer.ttftMs),
     totalMs: Math.round(answer.totalMs),
@@ -180,7 +198,11 @@ function summarize(items: ItemResult[]) {
     correctness: mean(ok.map((i) => i.correctness)),
     faithfulness: mean(ok.map((i) => i.faithfulness)),
     citationValidity: mean(ok.map((i) => i.citationValidity)),
+    citationPrecision: mean(ok.map((i) => i.citationPrecision)),
     citationRate: rate((i) => i.hasCitation),
+    // Items that silently fell back to snippets (embedding/DB failure) would skew a retrieval comparison
+    retrievalFallbacks: ok.filter((i) => i.contextMode !== RETRIEVAL).length,
+    avgContextChars: mean(ok.map((i) => i.contextChars)),
     formatOk: rate((i) => i.formatOk),
     latencyP50Ms: percentile(ok.map((i) => i.totalMs), 50),
     latencyP95Ms: percentile(ok.map((i) => i.totalMs), 95),
@@ -233,7 +255,7 @@ async function main() {
   );
   if (finished.size) console.log(`Resuming: ${finished.size} cases already done in ${path.basename(checkpointFile)}`);
 
-  console.log(`Evaluating ${cases.length} cases with ${ANSWER.label}, judged by ${JUDGE.label}`);
+  console.log(`Evaluating ${cases.length} cases with ${ANSWER.label} (${RETRIEVAL} context), judged by ${JUDGE.label}`);
 
   await Promise.all(
     Array.from({ length: concurrency }, async () => {
@@ -284,7 +306,7 @@ Stopped early: ${stopped.message}`);
   };
 
   const date = new Date().toISOString();
-  const meta = { label: args.label, date, model: ANSWER.label, judgeModel: JUDGE.label, git: gitSha(), freshSearch: args.fresh };
+  const meta = { label: args.label, date, model: ANSWER.label, retrieval: RETRIEVAL, judgeModel: JUDGE.label, git: gitSha(), freshSearch: args.fresh };
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
   const outFile = path.join(RESULTS_DIR, `${date.slice(0, 19).replace(/[:T]/g, "-")}_${args.label}.json`);
   fs.writeFileSync(outFile, JSON.stringify({ meta, summary, items }, null, 2));
@@ -301,7 +323,9 @@ Stopped early: ${stopped.message}`);
           errors: s.errors,
           correctness: pct(s.correctness),
           faithfulness: pct(s.faithfulness),
+          citePrec: pct(s.citationPrecision),
           citeValid: pct(s.citationValidity),
+          fallbacks: s.retrievalFallbacks,
           citeRate: pct(s.citationRate),
           formatOk: pct(s.formatOk),
           p50s: s.latencyP50Ms === null ? "-" : (s.latencyP50Ms / 1000).toFixed(1),

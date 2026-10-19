@@ -1,5 +1,4 @@
 import { PROMPT_TEMPLATE } from "../prompt";
-import { truncateText } from "../lib/text";
 import { hostnameOf, normalizeUrl, type QueryOptimizationContext } from "../retrieval/query";
 import type { WebSearchResult } from "../retrieval/search";
 
@@ -94,8 +93,16 @@ function buildImageFocusBlock(imageCandidates: ImageCandidate[]) {
   ].join("\n");
 }
 
+/** One numbered source passage shown to the model and cited as [n] (n = index + 1). */
+export type SourceContext = { url: string; title: string; text: string };
+
+export function formatSources(contexts: SourceContext[]) {
+  return contexts.map((c, i) => `[${i + 1}] ${c.title} (${c.url})\n${c.text}`).join("\n\n");
+}
+
 export function buildPrompt(
   queryContext: QueryOptimizationContext,
+  contexts: SourceContext[],
   webSearchResponse: WebSearchResult[],
   images: string[] = [],
 ) {
@@ -106,22 +113,12 @@ export function buildPrompt(
       .filter((candidate): candidate is ImageCandidate => Boolean(candidate)),
   ]);
 
-  // Drastically reduce input tokens by stripping rawContent and sending only the snippets
-  const optimizedWebSearchResponse = webSearchResponse.map((res) => ({
-    title: res.title,
-    url: res.url,
-    content: truncateText(res.content, 600),
-    sourceType: res.sourceType,
-    focusedByUser: res.focusedByUser,
-    images: res.images?.slice(0, 3) || [],
-  }));
-
   return PROMPT_TEMPLATE.replace(
     "{{QUERY_FOCUS}}",
     () => queryContext.llmFocusBlock,
   ).replace(
     "{{WEB_SEARCH_RESULTS}}",
-    () => JSON.stringify(optimizedWebSearchResponse),
+    () => formatSources(contexts),
   ).replace(
     "{{IMAGE_CANDIDATES}}",
     () => buildImageFocusBlock(imageCandidates.slice(0, 8)),

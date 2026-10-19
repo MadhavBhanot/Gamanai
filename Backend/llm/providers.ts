@@ -30,8 +30,12 @@ const DEFAULT_ANSWER_MODELS = [
 /** Ordered fallback chain: the first model serves, later ones take over if it fails before streaming. */
 export const ANSWER_CHAIN = resolveChain(process.env.ANSWER_MODELS ?? DEFAULT_ANSWER_MODELS);
 
-/** Provider-specific knobs. Gemini thinking adds latency for a grounded-summary task, so keep it at the lowest level 3.x Flash accepts. */
+/**
+ * Provider-specific knobs. Thinking adds latency to a grounded-summary task (and on Flash-Lite sometimes ate the
+ * whole reply), so use the lowest level each model accepts: Flash-Lite takes "minimal", 3.x Flash only "low".
+ */
 export function providerOptionsFor(ref: ModelRef) {
   if (ref.provider !== "google") return undefined;
-  return { google: { thinkingConfig: { thinkingLevel: (process.env.GEMINI_THINKING_LEVEL ?? "low") as "low" } } };
+  const level = process.env.GEMINI_THINKING_LEVEL ?? (ref.modelId.includes("lite") ? "minimal" : "low");
+  return { google: { thinkingConfig: { thinkingLevel: level as "minimal" | "low" } } };
 }

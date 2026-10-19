@@ -31,6 +31,17 @@ export function extractCitedUrls(answer: string) {
   return [...new Set(urls.map((u) => normalizeUrl(u)).filter((u): u is string => Boolean(u)))];
 }
 
+/** Inline [n] citation numbers in order of appearance (markdown links like [text](url) excluded). */
+export function extractCitationMarkers(answer: string) {
+  return [...answer.matchAll(/\[(\d{1,2})\](?!\()/g)].map((m) => Number(m[1]));
+}
+
+/** Share of [n] markers that point at a passage the model was actually given. */
+export function markerValidity(markers: number[], contextCount: number) {
+  if (!markers.length) return null;
+  return markers.filter((n) => n >= 1 && n <= contextCount).length / markers.length;
+}
+
 /** Share of cited URLs that point at a retrieved source page (or an image from one). */
 export function citationValidity(cited: string[], sourceUrls: string[], imageUrls: string[] = []) {
   if (!cited.length) return null;

@@ -2511,3 +2511,31 @@ h2 {
 .evals-table tbody tr:last-child > * {
   border-bottom: 0;
 }
+
+/* Inline source citations: [n] -> superscript chip linking to the source */
+.citation {
+  margin-left: 2px;
+  line-height: 0;
+}
+
+.citation a {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: var(--pill);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: super;
+}
+
+.citation a:hover,
+.citation a:focus-visible {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

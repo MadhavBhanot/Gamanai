@@ -55,3 +55,19 @@ enum MessageRole {
   USER
   ASSISTANT
 }
+
+// Chunks of fetched web pages with embeddings, for hybrid (vector + full-text) retrieval.
+// Deduped by (url, contentHash), so a page seen before isn't re-embedded.
+model SourceChunk {
+  id          BigInt                      @id @default(autoincrement())
+  url         String
+  title       String
+  chunkIndex  Int
+  contentHash String
+  content     String
+  embedding   Unsupported("vector(768)")
+  createdAt   DateTime                    @default(now())
+
+  @@unique([url, contentHash])
+  @@index([url])
+}

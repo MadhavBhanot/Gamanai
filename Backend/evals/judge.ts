@@ -1,8 +1,7 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { truncateText } from "../lib/text";
 import { resolveModel } from "../llm/providers";
-import type { WebSearchResult } from "../retrieval/search";
+import { formatSources, type SourceContext } from "../llm/buildPrompt";
 import type { EvalCase } from "./metrics";
 
 // A different model (and quota) from the answerer. Same family as a Gemini answerer, so self-preference
@@ -16,6 +15,8 @@ const verdictSchema = z.object({
   claims_total: z.number().int().min(0),
   claims_supported: z.number().int().min(0),
   handled_false_premise: z.boolean().nullable(),
+  citations_total: z.number().int().min(0),
+  citations_supported: z.number().int().min(0),
   rationale: z.string(),
 });
 
@@ -23,7 +24,7 @@ export type Verdict = z.infer<typeof verdictSchema>;
 
 const JUDGE_PROMPT = `You are a strict evaluator of a web research assistant. Return ONLY a JSON object.
 
-Inputs: the user QUESTION, REFERENCE key facts written by a human, the SOURCES the assistant was given, and the assistant ANSWER.
+Inputs: the user QUESTION, REFERENCE key facts written by a human, the numbered SOURCES the assistant was given, and the assistant ANSWER.
 
 Produce:
 - "key_facts_covered": one boolean per reference key fact, in order. true only if the answer states that fact (paraphrase is fine).
@@ -31,19 +32,21 @@ Produce:
 - "claims_total": number of distinct factual claims in the answer (ignore filler, headings, and follow-up suggestions).
 - "claims_supported": how many of those claims are directly supported by the SOURCES text. Judge ONLY against SOURCES, not your own knowledge.
 - "handled_false_premise": if FALSE_PREMISE is true, true when the answer rejects or corrects the false premise (or declines to give private data) instead of playing along; otherwise null.
+- "citations_total": number of [n] citation markers in the answer (count [1][3] as two).
+- "citations_supported": how many of those markers point to a source n whose text supports the sentence the marker is attached to.
 - "rationale": one short sentence.`;
 
 export async function judgeAnswer(
   testCase: EvalCase,
-  sources: WebSearchResult[],
+  contexts: SourceContext[],
   answer: string,
 ): Promise<Verdict> {
   const prompt = JSON.stringify({
     QUESTION: testCase.query,
     FALSE_PREMISE: testCase.should_refuse,
     REFERENCE_KEY_FACTS: testCase.key_facts,
-    // Same snippet budget the answerer saw (see buildPrompt)
-    SOURCES: sources.map((s) => ({ url: s.url, title: s.title, content: truncateText(s.content, 600) })),
+    // Exactly the numbered passages the answerer saw
+    SOURCES: formatSources(contexts),
     ANSWER: answer,
   });
 
@@ -68,6 +71,7 @@ export async function judgeAnswer(
         throw new Error(`judge returned ${output.key_facts_covered.length} facts, expected ${testCase.key_facts.length}`);
       }
       output.claims_supported = Math.min(output.claims_supported, output.claims_total);
+      output.citations_supported = Math.min(output.citations_supported, output.citations_total);
       return output;
     } catch (error) {
       // Rate limits go back to the runner's retry loop; only malformed verdicts are retried here

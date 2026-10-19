@@ -168,6 +168,15 @@ const renderInline = (
       nodes.push(<em key={`${keyPrefix}-italic-${match.index}`}>{emphasis}</em>);
     } else if (token.startsWith('`') && token.endsWith('`')) {
       nodes.push(<code key={`${keyPrefix}-code-${match.index}`}>{token.slice(1, -1)}</code>);
+    } else if (link && /^\d{1,2}$/.test(link[1])) {
+      // [n](url) comes from inline source citations
+      nodes.push(
+        <sup className="citation" key={`${keyPrefix}-cite-${match.index}`}>
+          <a aria-label={`Source ${link[1]}`} href={link[2]} rel="noreferrer" target="_blank" title={link[2]}>
+            {link[1]}
+          </a>
+        </sup>,
+      );
     } else if (link) {
       nodes.push(
         <a

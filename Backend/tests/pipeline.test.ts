@@ -40,14 +40,17 @@ describe("search results", () => {
 
 describe("prompt building", () => {
   it("fills every placeholder and strips rawContent", () => {
+    const results = [result("https://a.com", { rawContent: "SECRET_RAW", images: ["https://a.com/i.png"] })];
     const prompt = buildPrompt(
       buildQueryOptimizationContext("what is new"),
-      [result("https://a.com", { rawContent: "SECRET_RAW", images: ["https://a.com/i.png"] })],
+      [{ url: "https://a.com", title: "A", text: "passage one" }],
+      results,
     );
     expect(prompt).not.toMatch(/\{\{[A-Z_]+\}\}/);
     expect(prompt).not.toContain("SECRET_RAW");
     expect(prompt).toContain("https://a.com/i.png");
     expect(prompt).toContain("what is new");
+    expect(prompt).toContain("[1] A (https://a.com)\npassage one");
   });
 });
 

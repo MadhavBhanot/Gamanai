@@ -1,7 +1,9 @@
 import { streamText } from "ai";
+import { truncateText } from "../lib/text";
 import { SYSTEM_PROMPT } from "../prompt";
-import { getWebSearchResults } from "../retrieval/search";
-import { buildPrompt } from "./buildPrompt";
+import { indexPages, retrieveChunks, type RetrievalMode } from "../retrieval/hybrid";
+import { getWebSearchResults, type WebSearchResult } from "../retrieval/search";
+import { buildPrompt, type SourceContext } from "./buildPrompt";
 import { ANSWER_CHAIN, providerOptionsFor, type ModelRef } from "./providers";
 import type { ChatMessage } from "./stream";
 
@@ -15,20 +17,50 @@ export type AnswerResult = {
 };
 
 const ANSWER_TIMEOUT_MS = 60_000;
+const CONTEXT_CHUNKS = 8;
+const SNIPPET_CHARS = 600;
 
-/** Search + prompt assembly shared by the HTTP routes and the eval harness. */
+/** "snippets" = the pre-retrieval behaviour (one 600-char search snippet per page); kept for ablations and as fallback. */
+export type ContextMode = RetrievalMode | "snippets";
+export const CONTEXT_MODE = (process.env.RETRIEVAL_MODE ?? "hybrid") as ContextMode;
+
+function snippetContexts(results: WebSearchResult[]): SourceContext[] {
+  return results.map((r) => ({ url: r.url, title: r.title, text: truncateText(r.content, SNIPPET_CHARS) }));
+}
+
+/** Pick the passages the model sees: retrieved chunks from full pages, or plain snippets. */
+export async function buildContexts(query: string, results: WebSearchResult[], mode: ContextMode = CONTEXT_MODE) {
+  if (mode === "snippets") return { contexts: snippetContexts(results), mode };
+  try {
+    await indexPages(results.map((r) => ({ url: r.url, title: r.title, text: r.rawContent || r.content })));
+    const chunks = await retrieveChunks(query, results.map((r) => r.url), { k: CONTEXT_CHUNKS, mode });
+    if (chunks.length) {
+      return { contexts: chunks.map((c) => ({ url: c.url, title: c.title, text: c.content })), mode };
+    }
+  } catch (error) {
+    // DB or embedding outage shouldn't take answers down with it
+    console.error(`[retrieval] ${mode} failed, using snippets:`, String((error as Error)?.message ?? error).slice(0, 200));
+  }
+  return { contexts: snippetContexts(results), mode: "snippets" as const };
+}
+
+/** Search + retrieval + prompt assembly shared by the HTTP routes and the eval harness. */
 export async function prepareAnswer(
   query: string,
   history: ChatMessage[] = [],
   searcher: typeof getWebSearchResults = getWebSearchResults, // evals inject a cached searcher
+  mode: ContextMode = CONTEXT_MODE,
 ) {
   const search = await searcher(query);
+  const retrievalStartedAt = performance.now();
+  const { contexts, mode: usedMode } = await buildContexts(query, search.results, mode);
+  const retrievalMs = performance.now() - retrievalStartedAt;
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     ...history,
-    { role: "user", content: buildPrompt(search.queryContext, search.results, search.images) },
+    { role: "user", content: buildPrompt(search.queryContext, contexts, search.results, search.images) },
   ];
-  return { ...search, messages };
+  return { ...search, contexts, contextMode: usedMode, retrievalMs, messages };
 }
 
 /**

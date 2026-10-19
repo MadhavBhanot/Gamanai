@@ -219,8 +219,34 @@ const extractThinkSection = (rawContent: string) => {
   };
 };
 
+// The backend appends <CITATIONS>[{url,title},...]</CITATIONS> after the answer; [n] in the text means entry n.
+const CITATIONS_PATTERN = /<CITATIONS>([\s\S]*?)(?:<\/CITATIONS>|$)/i;
+
+const parseCitations = (rawContent: string): Array<{ url: string; title: string }> => {
+  const json = rawContent.match(CITATIONS_PATTERN)?.[1];
+  if (!json) return [];
+  try {
+    const parsed: unknown = JSON.parse(json);
+    return Array.isArray(parsed)
+      ? parsed.filter(isRecord).map((c) => ({ url: getString(c.url), title: getString(c.title) }))
+      : [];
+  } catch {
+    return []; // still streaming or malformed: leave [n] as plain text
+  }
+};
+
+/** Turn [n] markers into markdown links to their source; MarkdownText renders numeric links as citation chips. */
+const linkCitations = (answer: string, citations: Array<{ url: string; title: string }>) =>
+  citations.length
+    ? answer.replace(/\[(\d{1,2})\](?!\()/g, (marker, n: string) => {
+        const source = citations[Number(n) - 1];
+        return source?.url.startsWith('http') ? `[${n}](${source.url})` : marker;
+      })
+    : answer;
+
 const stripAssistantNoise = (value: string) =>
   value
+    .replace(CITATIONS_PATTERN, '')
     .replace(/(?:^|\n)\s*(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*(?=\n|$)/gi, '\n')
     .replace(/^(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*/i, '')
     .replace(/\n{3,}/g, '\n\n');
@@ -236,6 +262,11 @@ const cleanAssistantDisplayContent = (value: string) =>
     .trim();
 
 const extractAssistantParts = (rawContent: string): AssistantParts => {
+  const parts = extractAssistantSections(rawContent);
+  return { ...parts, answer: linkCitations(parts.answer, parseCitations(rawContent)) };
+};
+
+const extractAssistantSections = (rawContent: string): AssistantParts => {
   const { thinkContent, contentWithoutThink } = extractThinkSection(rawContent);
   const sanitizedContent = stripAssistantNoise(contentWithoutThink).trim();
   const xmlFollowUpStart = sanitizedContent.search(/<FOLLOW_UPS>/i);

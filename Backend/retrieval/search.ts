@@ -21,7 +21,7 @@ export type WebSearchResult = {
   focusedByUser?: boolean;
 };
 
-const DIRECT_EXTRACT_CONTENT_CHAR_LIMIT = 6_000;
+const DIRECT_EXTRACT_CONTENT_CHAR_LIMIT = 12_000; // matches the chunker's per-page cap
 const DIRECT_EXTRACT_SNIPPET_CHAR_LIMIT = 1_200;
 // Tavily calls have no built-in deadline; a hung request used to stall the whole answer.
 const SEARCH_TIMEOUT_MS = 20_000;
@@ -75,6 +75,7 @@ export async function getWebSearchResults(query: string) {
       includeFavicon: true,
       includeImages: needsImages,
       includeImageDescriptions: needsImages,
+      includeRawContent: "markdown", // full page text for chunking; snippets alone lose most of the page
     }), SEARCH_TIMEOUT_MS, "Tavily search")
     .catch((error) => {
       console.error("Web search failed", error);
@@ -93,10 +94,8 @@ export async function getWebSearchResults(query: string) {
   if (extracted) {
     extractedResults.push(
       ...extracted.results.map((result) => {
-        const rawContent = truncateText(
-          result.rawContent ?? "",
-          DIRECT_EXTRACT_CONTENT_CHAR_LIMIT,
-        );
+        // Keep newlines: the chunker splits on paragraph boundaries
+        const rawContent = (result.rawContent ?? "").slice(0, DIRECT_EXTRACT_CONTENT_CHAR_LIMIT);
 
         return {
           title: result.title?.trim() || result.url,
@@ -137,6 +136,7 @@ export async function getWebSearchResults(query: string) {
 
     searchResults = (webResults.results ?? []).map((result) => ({
       ...result,
+      rawContent: result.rawContent?.slice(0, DIRECT_EXTRACT_CONTENT_CHAR_LIMIT),
       sourceType: "search" as const,
       focusedByUser: isFocusedDomainMatch(
         result.url,

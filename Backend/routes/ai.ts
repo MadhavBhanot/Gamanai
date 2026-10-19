@@ -72,7 +72,7 @@ aiRouter.post(
     writeSseStatus(res, conversation.id, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { results: webSearchResponse, messages } = await prepareAnswer(query);
+      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query);
 
       writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -81,6 +81,7 @@ aiRouter.post(
         conversationId: conversation.id,
         webSearchResponse,
         messages,
+        contexts,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
@@ -119,7 +120,7 @@ aiRouter.post(
     writeSseStatus(res, conversationId, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { results: webSearchResponse, messages } = await prepareAnswer(query);
+      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query);
 
       writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -128,6 +129,7 @@ aiRouter.post(
         conversationId,
         webSearchResponse,
         messages,
+        contexts,
       });
     } catch (error) {
       console.error("Guest stream preparation failed", error);
@@ -202,7 +204,7 @@ aiRouter.post(
           }]
         : [];
 
-      const { results: webSearchResponse, messages } = await prepareAnswer(query, history);
+      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query, history);
       writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
 
       await streamAiResponse({
@@ -210,6 +212,7 @@ aiRouter.post(
         conversationId,
         webSearchResponse,
         messages,
+        contexts,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
