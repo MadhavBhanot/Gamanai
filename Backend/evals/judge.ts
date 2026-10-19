@@ -27,7 +27,7 @@ const JUDGE_PROMPT = `You are a strict evaluator of a web research assistant. Re
 Inputs: the user QUESTION, REFERENCE key facts written by a human, the numbered SOURCES the assistant was given, and the assistant ANSWER.
 
 Produce:
-- "key_facts_covered": one boolean per reference key fact, in order. true only if the answer states that fact (paraphrase is fine).
+- "key_facts_covered": exactly KEY_FACT_COUNT booleans, one per numbered reference key fact, in order. true only if the answer states that fact (paraphrase is fine).
 - "contradicts_key_facts": true if the answer asserts something that contradicts any reference fact.
 - "claims_total": number of distinct factual claims in the answer (ignore filler, headings, and follow-up suggestions).
 - "claims_supported": how many of those claims are directly supported by the SOURCES text. Judge ONLY against SOURCES, not your own knowledge.
@@ -44,14 +44,15 @@ export async function judgeAnswer(
   const prompt = JSON.stringify({
     QUESTION: testCase.query,
     FALSE_PREMISE: testCase.should_refuse,
-    REFERENCE_KEY_FACTS: testCase.key_facts,
+    REFERENCE_KEY_FACTS: testCase.key_facts.map((fact, i) => `${i + 1}. ${fact}`),
+    KEY_FACT_COUNT: testCase.key_facts.length, // key_facts_covered must have exactly this many entries
     // Exactly the numbered passages the answerer saw
     SOURCES: formatSources(contexts),
     ANSWER: answer,
   });
 
   let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const { output } = await generateText({
         model: JUDGE.model,

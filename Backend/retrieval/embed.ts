@@ -2,7 +2,9 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { embedMany } from "ai";
 
 export const EMBEDDING_DIMENSIONS = 768; // must match vector(768) in the SourceChunk migration
-const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "gemini-embedding-2";
+// Free tier: 1,000 texts/day per model. Vectors are tagged with this name, so changing it is safe
+// (old vectors are ignored and candidates re-embedded on demand).
+export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "gemini-embedding-001";
 
 const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
 const model = google.textEmbedding(EMBEDDING_MODEL);

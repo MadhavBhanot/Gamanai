@@ -41,3 +41,4 @@ describe("chunk starts", () => {
     for (const c of chunkText(words, 300, 60)) expect(c).toMatch(/^word\d+/);
   });
 });
+
