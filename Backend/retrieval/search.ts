@@ -1,5 +1,6 @@
 import { tavly } from "../config";
 import { truncateText } from "../lib/text";
+import { withTimeout } from "../lib/timeout";
 import {
   buildQueryOptimizationContext,
   dedupeStrings,
@@ -22,6 +23,8 @@ export type WebSearchResult = {
 
 const DIRECT_EXTRACT_CONTENT_CHAR_LIMIT = 6_000;
 const DIRECT_EXTRACT_SNIPPET_CHAR_LIMIT = 1_200;
+// Tavily calls have no built-in deadline; a hung request used to stall the whole answer.
+const SEARCH_TIMEOUT_MS = 20_000;
 
 export function dedupeWebSearchResults(results: WebSearchResult[]) {
   const seen = new Set<string>();
@@ -49,21 +52,21 @@ export async function getWebSearchResults(query: string) {
 
   // Run URL extraction and web search in PARALLEL instead of sequentially
   const extractionPromise = queryContext.referencedUrls.length
-    ? tavly
+    ? withTimeout(tavly
         .extract(queryContext.referencedUrls, {
           extractDepth: "advanced",
           format: "markdown",
           includeImages: needsImages,
           includeFavicon: true,
           query: queryContext.queryWithoutUrls || undefined,
-        })
+        }), SEARCH_TIMEOUT_MS, "Tavily extract")
         .catch((error) => {
           console.error("Direct URL extraction failed", error);
           return null;
         })
     : Promise.resolve(null);
 
-  const searchPromise = tavly
+  const searchPromise = withTimeout(tavly
     .search(queryContext.optimizedSearchQuery, {
       searchDepth: "basic",
       includeDomains: queryContext.referencedDomains.length
@@ -72,7 +75,7 @@ export async function getWebSearchResults(query: string) {
       includeFavicon: true,
       includeImages: needsImages,
       includeImageDescriptions: needsImages,
-    })
+    }), SEARCH_TIMEOUT_MS, "Tavily search")
     .catch((error) => {
       console.error("Web search failed", error);
       return null;

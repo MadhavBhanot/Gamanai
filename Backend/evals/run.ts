@@ -17,8 +17,10 @@ import { parseArgs } from "node:util";
 import Groq from "groq-sdk";
 import { CHAT_MODEL } from "../config";
 import { generateAnswer, prepareAnswer } from "../llm/answer";
+import { withTimeout } from "../lib/timeout";
 import { getWebSearchResults } from "../retrieval/search";
 import { JUDGE_MODEL, judgeAnswer } from "./judge";
+import { estimateTokens, TokenPacer } from "./pacer";
 import {
   citationValidity,
   extractCitedUrls,
@@ -46,7 +48,17 @@ const { values: args } = parseArgs({
 });
 
 // maxRetries 0: we retry 429s ourselves so latency is measured per attempt, not including backoff.
-const client = new Groq({ apiKey: process.env.Groq_API_Key ?? "", maxRetries: 0 });
+const client = new Groq({ apiKey: process.env.Groq_API_Key ?? "", maxRetries: 0, timeout: 120_000 });
+
+// Groq free tier: 8k tokens/min per model. Budget 90% of it so bursts don't trip 429s.
+const TPM_BUDGET = Number(process.env.EVAL_TPM ?? 8000) * 0.9;
+const answerPacer = new TokenPacer(TPM_BUDGET);
+const judgePacer = JUDGE_MODEL === CHAT_MODEL ? answerPacer : new TokenPacer(TPM_BUDGET);
+const ANSWER_MAX_TOKENS = 1500; // matches generateAnswer's max_completion_tokens
+const JUDGE_MAX_TOKENS = 2000; // matches judgeAnswer's max_completion_tokens
+
+// Covers pacer waits too, so generous; a hang becomes an error item instead of stalling the run.
+const CASE_TIMEOUT_MS = 6 * 60_000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -93,9 +105,19 @@ function loadCases(): EvalCase[] {
 
 async function evaluate(testCase: EvalCase) {
   const prepared = await prepareAnswer(testCase.query, [], cachedSearch);
-  const answer = await withRateLimitRetry(() => generateAnswer(prepared.messages, undefined, client));
+  const answerEstimate = estimateTokens(JSON.stringify(prepared.messages)) + ANSWER_MAX_TOKENS;
+  const answer = await withRateLimitRetry(async () => {
+    await answerPacer.take(answerEstimate);
+    return generateAnswer(prepared.messages, undefined, client);
+  });
   const parsed = parseAnswerSections(answer.content);
-  const verdict = await withRateLimitRetry(() => judgeAnswer(client, testCase, prepared.results, parsed.answer));
+  // Judge input ≈ instructions + snippets (600 chars each) + answer
+  const judgeEstimate =
+    estimateTokens(parsed.answer) + prepared.results.length * 180 + 600 + JUDGE_MAX_TOKENS;
+  const verdict = await withRateLimitRetry(async () => {
+    await judgePacer.take(judgeEstimate);
+    return judgeAnswer(client, testCase, prepared.results, parsed.answer);
+  });
 
   const factCoverage = verdict.key_facts_covered.filter(Boolean).length / testCase.key_facts.length;
   const cited = extractCitedUrls(parsed.answer);
@@ -172,6 +194,19 @@ async function main() {
   let next = 0;
   let done = 0;
 
+  // Checkpoint each finished item so an interrupted run resumes instead of starting over.
+  fs.mkdirSync(RESULTS_DIR, { recursive: true });
+  const checkpointFile = path.join(RESULTS_DIR, `.checkpoint_${args.label}.jsonl`);
+  const finished = new Map<string, ItemResult>(
+    fs.existsSync(checkpointFile)
+      ? fs.readFileSync(checkpointFile, "utf8").split("\n").filter(Boolean)
+          .map((line) => JSON.parse(line) as ItemResult)
+          .filter((item) => !("error" in item)) // retry failures on resume
+          .map((item) => [item.id, item])
+      : [],
+  );
+  if (finished.size) console.log(`Resuming: ${finished.size} cases already done in ${path.basename(checkpointFile)}`);
+
   console.log(`Evaluating ${cases.length} cases with ${CHAT_MODEL}, judged by ${JUDGE_MODEL}`);
 
   await Promise.all(
@@ -179,12 +214,19 @@ async function main() {
       while (next < cases.length) {
         const index = next++;
         const testCase = cases[index];
+        const previous = finished.get(testCase.id);
+        if (previous) {
+          items[index] = previous;
+          done++;
+          continue;
+        }
         try {
-          items[index] = await evaluate(testCase);
+          items[index] = await withTimeout(evaluate(testCase), CASE_TIMEOUT_MS, testCase.id);
         } catch (error) {
           items[index] = { id: testCase.id, bucket: testCase.bucket, query: testCase.query, error: String(error) };
         }
         const item = items[index];
+        fs.appendFileSync(checkpointFile, `${JSON.stringify(item)}\n`);
         console.log(
           `[${++done}/${cases.length}] ${testCase.id} ${
             "error" in item ? `ERROR ${item.error.slice(0, 120)}` : `correct=${item.correctness.toFixed(2)} faithful=${item.faithfulness?.toFixed(2) ?? "-"}`
@@ -206,6 +248,7 @@ async function main() {
   const outFile = path.join(RESULTS_DIR, `${date.slice(0, 19).replace(/[:T]/g, "-")}_${args.label}.json`);
   fs.writeFileSync(outFile, JSON.stringify({ meta, summary, items }, null, 2));
   publishIndex();
+  fs.rmSync(checkpointFile, { force: true });
 
   const pct = (v: number | null) => (v === null ? "-" : `${(v * 100).toFixed(1)}%`);
   console.table(

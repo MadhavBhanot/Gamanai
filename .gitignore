@@ -13,3 +13,4 @@ Preqz/
 # docs stay local
 *.md
 .claude/
+Backend/evals/results/.checkpoint_*

@@ -28,6 +28,7 @@ export const tavly = tavily({
 
 export const groq = new Groq({
   apiKey: process.env.Groq_API_Key ?? "",
+  timeout: 60_000,
 });
 
 // Groq retires models often; override with CHAT_MODEL without a redeploy of code.
