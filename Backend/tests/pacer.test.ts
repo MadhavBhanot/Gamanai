@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TokenPacer } from "../evals/pacer";
+import { parseRetryDelayMs, TokenPacer } from "../evals/pacer";
 
 function fakeClock() {
   let t = 0;
@@ -41,5 +41,15 @@ describe("TokenPacer", () => {
     await Promise.all([pacer.take(600), pacer.take(600), pacer.take(600)]);
     // 600 free, then two waits of 12s (200 short) and 36s (600 short)
     expect(clock.waits).toEqual([12_000, 36_000]);
+  });
+});
+
+describe("parseRetryDelayMs", () => {
+  it("parses Groq's human-readable waits", () => {
+    expect(parseRetryDelayMs("Please try again in 19m16.464s. Need more")).toBeCloseTo(1_156_464, 0);
+    expect(parseRetryDelayMs("try again in 1h2m3s")).toBe(3_723_000);
+    expect(parseRetryDelayMs("try again in 577ms")).toBe(577);
+    expect(parseRetryDelayMs("try again in 7.5s")).toBe(7_500);
+    expect(parseRetryDelayMs("no hint here")).toBeNull();
   });
 });

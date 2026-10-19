@@ -39,3 +39,14 @@ export class TokenPacer {
 
 /** Rough token estimate (~3.5 chars/token for English + JSON); deliberately conservative. */
 export const estimateTokens = (text: string) => Math.ceil(text.length / 3.5);
+
+/** Groq puts the wait in the error text ("Please try again in 19m16.464s") and often sends no retry-after header. */
+export function parseRetryDelayMs(message: string) {
+  const match = message.match(/try again in ((?:\d+h)?(?:\d+m(?!s))?(?:[\d.]+s)?(?:[\d.]+ms)?)/i)?.[1];
+  if (!match) return null;
+  const part = (pattern: RegExp) => Number(match.match(pattern)?.[1] ?? 0);
+  return (
+    ((part(/(\d+)h/) * 60 + part(/(\d+)m(?!s)/)) * 60 + part(/([\d.]+)s/)) * 1000 +
+    part(/([\d.]+)ms/)
+  );
+}

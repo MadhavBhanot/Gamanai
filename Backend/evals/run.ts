@@ -20,7 +20,7 @@ import { generateAnswer, prepareAnswer } from "../llm/answer";
 import { withTimeout } from "../lib/timeout";
 import { getWebSearchResults } from "../retrieval/search";
 import { JUDGE_MODEL, judgeAnswer } from "./judge";
-import { estimateTokens, TokenPacer } from "./pacer";
+import { estimateTokens, parseRetryDelayMs, TokenPacer } from "./pacer";
 import {
   citationValidity,
   extractCitedUrls,
@@ -62,6 +62,9 @@ const CASE_TIMEOUT_MS = 6 * 60_000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Thrown when a per-day quota is spent: waiting minutes won't help, so the run stops and resumes later. */
+class DailyQuotaError extends Error {}
+
 async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
@@ -69,9 +72,14 @@ async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
     } catch (error) {
       const status = (error as { status?: number }).status;
       if (status !== 429 || attempt >= 15) throw error;
-      const headers = (error as { headers?: Headers }).headers;
-      const retryAfter = Number(headers?.get?.("retry-after"));
-      await sleep((Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 10) * 1000 + Math.random() * 1000);
+      const message = String((error as Error).message);
+      const waitMs =
+        parseRetryDelayMs(message) ??
+        Number((error as { headers?: Headers }).headers?.get?.("retry-after") || 10) * 1000;
+      if (/per day|\(TPD\)|\(RPD\)/i.test(message) && waitMs > 15 * 60_000) {
+        throw new DailyQuotaError(`Daily quota spent; resume in ~${Math.ceil(waitMs / 60_000)} min. ${message.slice(0, 160)}`);
+      }
+      await sleep(waitMs + Math.random() * 1000);
     }
   }
 }
@@ -193,6 +201,7 @@ async function main() {
   const items: ItemResult[] = new Array(cases.length);
   let next = 0;
   let done = 0;
+  let quotaStop: DailyQuotaError | null = null;
 
   // Checkpoint each finished item so an interrupted run resumes instead of starting over.
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
@@ -220,9 +229,14 @@ async function main() {
           done++;
           continue;
         }
+        if (quotaStop) return;
         try {
           items[index] = await withTimeout(evaluate(testCase), CASE_TIMEOUT_MS, testCase.id);
         } catch (error) {
+          if (error instanceof DailyQuotaError) {
+            quotaStop = error;
+            return; // leave this case unrecorded so the resumed run picks it up
+          }
           items[index] = { id: testCase.id, bucket: testCase.bucket, query: testCase.query, error: String(error) };
         }
         const item = items[index];
@@ -235,6 +249,16 @@ async function main() {
       }
     }),
   );
+
+  // Assigned inside the workers' closures, which TS flow analysis can't see
+  const stopped = quotaStop as DailyQuotaError | null;
+  if (stopped) {
+    console.error(`
+Stopped early: ${stopped.message}`);
+    console.error(`${finished.size + done} cases checkpointed. Re-run the same command to resume.`);
+    process.exitCode = 3; // not process.exit(): it trips a libuv assertion on Windows with sockets still open
+    return;
+  }
 
   const buckets = [...new Set(cases.map((c) => c.bucket))];
   const summary = {
