@@ -1,7 +1,7 @@
 import type express from "express";
-import { CHAT_MODEL, groq } from "../config";
 import { setSseHeaders, writeSse } from "../lib/sse";
 import type { WebSearchResult } from "../retrieval/search";
+import { generateAnswer } from "./answer";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -28,27 +28,14 @@ export async function streamAiResponse({
   writeSse(res, { type: "sources", sources: webSearchResponse });
 
   try {
-    const llmStream = await groq.chat.completions.create({
-      model: CHAT_MODEL,
-      messages,
-      max_completion_tokens: 1500,
-      stream: true,
-    });
-
     writeSse(res, { type: "response_start", conversationId });
 
-    let assistantContent = "";
-    for await (const chunk of llmStream) {
-      const content = chunk.choices[0]?.delta?.content ?? "";
+    const { content } = await generateAnswer(messages, (text) =>
+      writeSse(res, { type: "delta", text }),
+    );
 
-      if (content) {
-        assistantContent += content;
-        writeSse(res, { type: "delta", text: content });
-      }
-    }
-
-    if (assistantContent.trim() && onComplete) {
-      await onComplete(assistantContent);
+    if (content.trim() && onComplete) {
+      await onComplete(content);
     }
 
     writeSse(res, { type: "response_end", conversationId });

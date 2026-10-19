@@ -1,0 +1,90 @@
+[
+  {
+    "file": "2026-10-19-02-38-49_dryrun.json",
+    "label": "dryrun",
+    "date": "2026-10-19T02:38:49.154Z",
+    "model": "qwen/qwen3.8-27b",
+    "judgeModel": "openai/gpt-oss-120b",
+    "git": "9731349",
+    "freshSearch": false,
+    "summary": {
+      "overall": {
+        "n": 4,
+        "errors": 0,
+        "correctness": 1,
+        "faithfulness": 0.8541666666666666,
+        "citationValidity": null,
+        "citationRate": 0,
+        "formatOk": 1,
+        "latencyP50Ms": 719,
+        "latencyP95Ms": 1799,
+        "ttftP50Ms": 326,
+        "ttftP95Ms": 383,
+        "avgPromptTokens": 2828.75,
+        "avgCompletionTokens": 337
+      },
+      "byBucket": {
+        "factual": {
+          "n": 1,
+          "errors": 0,
+          "correctness": 1,
+          "faithfulness": 1,
+          "citationValidity": null,
+          "citationRate": 0,
+          "formatOk": 1,
+          "latencyP50Ms": 719,
+          "latencyP95Ms": 719,
+          "ttftP50Ms": 383,
+          "ttftP95Ms": 383,
+          "avgPromptTokens": 3031,
+          "avgCompletionTokens": 178
+        },
+        "multi_hop": {
+          "n": 1,
+          "errors": 0,
+          "correctness": 1,
+          "faithfulness": 0.6666666666666666,
+          "citationValidity": null,
+          "citationRate": 0,
+          "formatOk": 1,
+          "latencyP50Ms": 589,
+          "latencyP95Ms": 589,
+          "ttftP50Ms": 313,
+          "ttftP95Ms": 313,
+          "avgPromptTokens": 2976,
+          "avgCompletionTokens": 145
+        },
+        "url_focus": {
+          "n": 1,
+          "errors": 0,
+          "correctness": 1,
+          "faithfulness": 1,
+          "citationValidity": null,
+          "citationRate": 0,
+          "formatOk": 1,
+          "latencyP50Ms": 844,
+          "latencyP95Ms": 844,
+          "ttftP50Ms": 351,
+          "ttftP95Ms": 351,
+          "avgPromptTokens": 2787,
+          "avgCompletionTokens": 252
+        },
+        "false_premise": {
+          "n": 1,
+          "errors": 0,
+          "correctness": 1,
+          "faithfulness": 0.75,
+          "citationValidity": null,
+          "citationRate": 0,
+          "formatOk": 1,
+          "latencyP50Ms": 1799,
+          "latencyP95Ms": 1799,
+          "ttftP50Ms": 326,
+          "ttftP95Ms": 326,
+          "avgPromptTokens": 2521,
+          "avgCompletionTokens": 773
+        }
+      }
+    }
+  }
+]

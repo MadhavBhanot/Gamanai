@@ -8,10 +8,8 @@ import { authorize } from "../Middleware/authorize";
 import { asyncHandler, getRequestUserId } from "../lib/http";
 import { failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
 import { slugify } from "../lib/text";
-import { buildPrompt } from "../llm/buildPrompt";
+import { prepareAnswer } from "../llm/answer";
 import { streamAiResponse, type ChatMessage } from "../llm/stream";
-import { SYSTEM_PROMPT } from "../prompt";
-import { getWebSearchResults } from "../retrieval/search";
 
 const aiRequestSchema = z.object({
   query: z.string().trim().min(1, "query is required"),
@@ -74,8 +72,7 @@ aiRouter.post(
     writeSseStatus(res, conversation.id, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { queryContext, results: webSearchResponse, images } =
-        await getWebSearchResults(query);
+      const { results: webSearchResponse, messages } = await prepareAnswer(query);
 
       writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -83,10 +80,7 @@ aiRouter.post(
         res,
         conversationId: conversation.id,
         webSearchResponse,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildPrompt(queryContext, webSearchResponse, images) },
-        ],
+        messages,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
@@ -125,8 +119,7 @@ aiRouter.post(
     writeSseStatus(res, conversationId, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { queryContext, results: webSearchResponse, images } =
-        await getWebSearchResults(query);
+      const { results: webSearchResponse, messages } = await prepareAnswer(query);
 
       writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -134,10 +127,7 @@ aiRouter.post(
         res,
         conversationId,
         webSearchResponse,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: buildPrompt(queryContext, webSearchResponse, images) },
-        ],
+        messages,
       });
     } catch (error) {
       console.error("Guest stream preparation failed", error);
@@ -200,34 +190,26 @@ aiRouter.post(
         "Searching the web",
         "Extracting any referenced URLs and collecting fresh sources.",
       );
-      const { queryContext, results: webSearchResponse, images } =
-        await getWebSearchResults(query);
-      writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
-
       const userQueries = conversation.messages
         .filter((message) => message.role === "USER")
         .slice(-5)
         .map((message, index) => `- Query ${index + 1}: ${message.content}`);
 
-      const llmMessages: ChatMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
+      const history: ChatMessage[] = userQueries.length
+        ? [{
+            role: "system",
+            content: `\n\n## User Conversation History (Previous Queries):\n${userQueries.join("\n")}`,
+          }]
+        : [];
 
-      if (userQueries.length > 0) {
-        llmMessages.push({
-          role: "system",
-          content: `\n\n## User Conversation History (Previous Queries):\n${userQueries.join("\n")}`,
-        });
-      }
-
-      llmMessages.push({
-        role: "user",
-        content: buildPrompt(queryContext, webSearchResponse, images),
-      });
+      const { results: webSearchResponse, messages } = await prepareAnswer(query, history);
+      writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
 
       await streamAiResponse({
         res,
         conversationId,
         webSearchResponse,
-        messages: llmMessages,
+        messages,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
