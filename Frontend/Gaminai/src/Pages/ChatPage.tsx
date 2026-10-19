@@ -722,7 +722,9 @@ const ChatPage = () => {
   const latestAssistantPreviewRef = useRef('');
   const assistantRawContentByIdRef = useRef<Record<string, string>>({});
 
-  const canSubmit = Boolean(user && input.trim() && (!isStreaming || streamingConversationId !== activeConversationId));
+  // Guests (no sign-in) can chat too; they get single-shot answers via /api/AI/guest
+  const canChat = Boolean(user) || isGuestMode();
+  const canSubmit = Boolean(canChat && input.trim() && (!isStreaming || streamingConversationId !== activeConversationId));
 
   const firstName = useMemo(() => {
     if (!user?.email) {
@@ -2056,7 +2058,7 @@ const ChatPage = () => {
           <form className="composer" onSubmit={submitPrompt}>
             <textarea
               aria-label="Message Gaminai"
-              disabled={!user || (isStreaming && streamingConversationId === activeConversationId)}
+              disabled={!canChat || (isStreaming && streamingConversationId === activeConversationId)}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey) {
@@ -2064,7 +2066,7 @@ const ChatPage = () => {
                   if (canSubmit) void runPrompt(input);
                 }
               }}
-              placeholder={user ? 'Ask Gaminai anything...' : 'Log in to start.'}
+              placeholder={canChat ? 'Ask Gaminai anything...' : 'Log in to start.'}
               ref={inputRef}
               rows={1}
               value={input}
