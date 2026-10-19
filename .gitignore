@@ -9,3 +9,6 @@ Backend/generated/
 # unrelated scratch project, kept locally only
 Preqz/
 *.exe
+
+# docs stay local
+*.md
