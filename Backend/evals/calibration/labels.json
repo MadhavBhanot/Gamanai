@@ -1,0 +1,361 @@
+[
+  {
+    "id": "factual-01",
+    "bucket": "factual",
+    "query": "Who won the 2024 Nobel Prize in Physics?",
+    "key_facts": [
+      "John Hopfield",
+      "Geoffrey Hinton"
+    ],
+    "answer": "The 2024 Nobel Prize in Physics was awarded jointly to **John J. Hopfield** and **Geoffrey E. Hinton** \"for foundational discoveries and inventions that enable machine learning with artificial neural networks.\"",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-04",
+    "bucket": "factual",
+    "query": "Who won the 2024 ICC Men's T20 World Cup?",
+    "key_facts": [
+      "India",
+      "beat South Africa in the final"
+    ],
+    "answer": "India won the 2024 ICC Men's T20 World Cup, defeating South Africa by 7 runs in the final held at the Kensington Oval in Barbados on June 29, 2024.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-07",
+    "bucket": "factual",
+    "query": "Which company released Llama 3 and when?",
+    "key_facts": [
+      "Meta",
+      "April 2024"
+    ],
+    "answer": "Meta released Llama 3 on April 18, 2024.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-11",
+    "bucket": "factual",
+    "query": "Which country hosted the 2023 G20 summit?",
+    "key_facts": [
+      "India",
+      "New Delhi"
+    ],
+    "answer": "India hosted the 2023 G20 summit. The eighteenth meeting of the G20 was held in New Delhi on September 9–10, 2023, under India's presidency.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-14",
+    "bucket": "factual",
+    "query": "When was the Apple Vision Pro released in the US?",
+    "key_facts": [
+      "February 2, 2024"
+    ],
+    "answer": "The Apple Vision Pro was released in the United States on February 2, 2024, with pre-orders beginning in mid-January of that same year. It was initially announced earlier on June 5, 2023, at Apple's Worldwide Developers Conference (WWDC).",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-17",
+    "bucket": "factual",
+    "query": "Which team won IPL 2025?",
+    "key_facts": [
+      "Royal Challengers Bengaluru",
+      "first IPL title"
+    ],
+    "answer": "Royal Challengers Bengaluru (RCB) won the IPL 2025 title, securing their maiden championship by defeating the Punjab Kings in the final.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-21",
+    "bucket": "factual",
+    "query": "What major experimental runtime change shipped in Python 3.13?",
+    "key_facts": [
+      "free-threaded build without the GIL",
+      "released October 2024"
+    ],
+    "answer": "Python 3.13 introduced a couple of major experimental runtime changes:\n\n1. **Free-Threaded Mode (GIL-Free Python):** Per PEP 703, CPython now includes experimental support for running in a free-threaded mode where the Global Interpreter Lock (GIL) can be disabled. This allows true concurrent execution of pure Python code and better utilization of multicore processors. This mode is optional and not enabled by default.\n2. **Experimental JIT Compiler:** Python 3.13 features a preliminary, experimental Just-In-Time (JIT) compiler (PEP 744) designed to lay the groundwork for significant future performance improvements.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-24",
+    "bucket": "factual",
+    "query": "When did GitHub Copilot become generally available?",
+    "key_facts": [
+      "June 2022"
+    ],
+    "answer": "GitHub Copilot became generally available to all developers in **June 2022** (specifically on June 21, 2022), following its initial technical preview period that began in June 2021.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-27",
+    "bucket": "factual",
+    "query": "Which country won the most medals at the 2022 Asian Games held in Hangzhou in 2023?",
+    "key_facts": [
+      "China"
+    ],
+    "answer": "China won the most medals at the 2022 Asian Games held in Hangzhou, finishing at the top of the medal table with a total of 383 medals, which included 201 gold, 111 silver, and 71 bronze medals.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-31",
+    "bucket": "factual",
+    "query": "Who won the 2024 ICC Women's T20 World Cup?",
+    "key_facts": [
+      "New Zealand",
+      "beat South Africa in the final"
+    ],
+    "answer": "New Zealand's women's cricket team won the 2024 ICC Women's T20 World Cup, claiming their first-ever title in this format. They defeated South Africa by 32 runs in the final held in Dubai, United Arab Emirates.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "factual-34",
+    "bucket": "factual",
+    "query": "Who won the 2024 Wimbledon men's singles title?",
+    "key_facts": [
+      "Carlos Alcaraz"
+    ],
+    "answer": "Carlos Alcaraz won the 2024 Wimbledon men's singles title. He defeated Novak Djokovic in the final with a score of 6–2, 6–2, 7–6 (7–4) to claim his second consecutive Wimbledon championship.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-02",
+    "bucket": "multi_hop",
+    "query": "In which city was the current CEO of Microsoft born?",
+    "key_facts": [
+      "Satya Nadella",
+      "Hyderabad"
+    ],
+    "answer": "The current CEO of Microsoft, Satya Nadella, was born in Hyderabad, India.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-06",
+    "bucket": "multi_hop",
+    "query": "How many years after Google was founded was Alphabet created?",
+    "key_facts": [
+      "Google founded 1998",
+      "Alphabet created 2015",
+      "17 years"
+    ],
+    "answer": "Alphabet Inc. was created 17 years after Google was founded. Google was established on September 4, 1998, while Alphabet was formed through a corporate restructuring on October 2, 2015.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-09",
+    "bucket": "multi_hop",
+    "query": "In which stadium and city was the 2023 Men's Cricket World Cup final played?",
+    "key_facts": [
+      "Narendra Modi Stadium",
+      "Ahmedabad"
+    ],
+    "answer": "The 2023 Men's Cricket World Cup final was played at the **Narendra Modi Stadium** in **Ahmedabad**, India.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-12",
+    "bucket": "multi_hop",
+    "query": "Which city hosted the Summer Olympics before Paris 2024, and in what year were those Games actually held?",
+    "key_facts": [
+      "Tokyo",
+      "2021"
+    ],
+    "answer": "The Summer Olympics before Paris 2024 were hosted by Tokyo, Japan. Although they were officially designated as the 2020 Summer Olympics, the Games were actually held in **2021** (from July 23 to August 8, 2021) due to the COVID-19 pandemic.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-16",
+    "bucket": "multi_hop",
+    "query": "What were the names of the lander and rover of the mission that made India the first country to land near the lunar south pole?",
+    "key_facts": [
+      "Chandrayaan-3",
+      "Vikram lander",
+      "Pragyan rover"
+    ],
+    "answer": "The lander and rover of India's Chandrayaan-3 mission, which successfully landed near the Moon's south pole, were named **Vikram** (the lunar lander) and **Pragyan** (the lunar rover).",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-19",
+    "bucket": "multi_hop",
+    "query": "What currency is used in the country Rodri represents in international football?",
+    "key_facts": [
+      "Spain",
+      "Euro"
+    ],
+    "answer": "Rodri represents Spain in international football. The currency used in Spain is the euro (€).",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "multi_hop-22",
+    "bucket": "multi_hop",
+    "query": "The founder of Amazon also founded which space company?",
+    "key_facts": [
+      "Jeff Bezos",
+      "Blue Origin"
+    ],
+    "answer": "The founder of Amazon, Jeff Bezos, also founded the aerospace manufacturer and sub-orbital spaceflight services company **Blue Origin**. He established the company in September 2000 with a long-term vision of enabling millions of people to live and work in space.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-01",
+    "bucket": "url_focus",
+    "query": "What can this API read during render? https://react.dev/reference/react/use",
+    "key_facts": [
+      "Promises",
+      "context",
+      "can be called inside conditionals and loops unlike other hooks"
+    ],
+    "answer": "The React `use` API can read resources during rendering, specifically:\n\n1. **Promises**: You can pass a promise to `use`, and React will Suspend until the promise resolves.\n2. **Context**: You can pass a context to `use` to read its value (similar to `useContext`, but unlike `useContext`, `use` can be called within loops and conditional statements like `if`).",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-04",
+    "bucket": "url_focus",
+    "query": "What content type must the server send for this to work? https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+    "key_facts": [
+      "text/event-stream",
+      "EventSource"
+    ],
+    "answer": "For Server-Sent Events to work, the server must respond with the MIME type `text/event-stream`. Each notification is sent as a block of text terminated by a pair of newlines.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-07",
+    "bucket": "url_focus",
+    "query": "How do I define error-handling middleware according to this guide? https://expressjs.com/en/guide/error-handling.html",
+    "key_facts": [
+      "four arguments (err, req, res, next)",
+      "defined after other app.use and routes"
+    ],
+    "answer": "According to the Express.js guide, you define error-handling middleware functions in the same way as other middleware functions, except error-handling functions take **four arguments** instead of three: `(err, req, res, next)`. \n\nFor example:\n\n```javascript\napp.use((err, req, res, next) => {\n  console.error(err.stack);\n  res.status(500).send('Something broke!');\n});\n```\n\nOr with TypeScript:\n\n```typescript\nimport { type Request, type Response, type NextFunction } from 'express';\n\napp.use((err: Error, req: Request, res: Response, next: NextFunction) => {\n  console.error(err.stack);\n  res.status(500).send('Something broke!');\n});\n```\n\nAdditionally, you should define error-handling middleware **last**, after other `app.use()` calls and route definitions.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-11",
+    "bucket": "url_focus",
+    "query": "Which environment variables get exposed to client code? https://vite.dev/guide/env-and-mode",
+    "key_facts": [
+      "only variables prefixed with VITE_",
+      "accessed through import.meta.env"
+    ],
+    "answer": "In Vite, only environment variables prefixed with `VITE_` are exposed to your client-side source code (accessible via `import.meta.env`). \n\nThis mechanism is designed to prevent accidentally leaking sensitive credentials—such as secret database passwords or API keys—to the client. For example, if your `.env` file contains:\n\n```env\nVITE_SOME_KEY=123\nDB_PASSWORD=foobar\n```\n\nOnly `VITE_SOME_KEY` will be exposed as `import.meta.env.VITE_SOME_KEY` in your client code, while `DB_PASSWORD` will remain secure and inaccessible on the client side.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-14",
+    "bucket": "url_focus",
+    "query": "What value formats does this header accept? https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After",
+    "key_facts": [
+      "an HTTP date",
+      "a number of seconds to delay"
+    ],
+    "answer": "The `Retry-After` HTTP header accepts two types of value formats:\n\n1. **An HTTP-date**: A specific date and time (in HTTP date format) after which the user agent can retry the request. For example: `Retry-After: Wed, 21 Oct 2015 07:28:00 GMT`\n2. **A delay in seconds**: A non-negative decimal integer representing the number of seconds the user agent should wait before making a new request. For example: `Retry-After: 120`",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "url_focus-17",
+    "bucket": "url_focus",
+    "query": "What is this project and what kinds of checks does it support? https://github.com/louislam/uptime-kuma",
+    "key_facts": [
+      "self-hosted monitoring tool",
+      "HTTP(s), TCP, ping, DNS monitors",
+      "notifications"
+    ],
+    "answer": "**Uptime Kuma** (`louislam/uptime-kuma`) is a popular, self-hosted monitoring tool featuring a modern, reactive user interface (built with Vue 3, Vite, and Tailwind/Bootstrap styling). It functions similarly to hosted uptime monitoring services like Uptime Robot, allowing you to track the availability and performance of your services and receive notifications through various channels (like Telegram, Discord, Webhooks, etc.).\n\nBased on its features, issue discussions, and configuration types, Uptime Kuma supports a variety of checks, including:\n* **HTTP(s) / Website Monitoring:** Checks availability, status codes, response times, keywords, and certificate expiration.\n* **TCP Port Monitoring:** Checks if a specific TCP port is open and responding.\n* **Ping / ICMP:** Measures network latency and availability via standard ping.\n* **DNS Records:** Monitors DNS resolution.\n* **Push Monitors:** Waits for an explicit ping/heartbeat from a client or cron job (useful for backup or scheduled tasks).\n* **SSL/TLS Certificate Tracking:** Tracks certificate expiration dates.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-01",
+    "bucket": "false_premise",
+    "query": "Why did Einstein win the Nobel Prize for relativity?",
+    "key_facts": [
+      "he did not win it for relativity",
+      "the 1921 prize was for the photoelectric effect"
+    ],
+    "answer": "Contrary to popular belief, Albert Einstein did not win the Nobel Prize for his theory of relativity. \n\nInstead, he was awarded the 1921 Nobel Prize in Physics (which was actually presented to him in 1922) for his \"services to theoretical physics, and especially for his discovery of the law of the photoelectric effect.\" \n\nRelativity was excluded from the prize for a few key reasons:\n1. **Controversy and Skepticism:** At the time, the theories of special and general relativity were still viewed with skepticism and considered by some members of the Nobel Committee to be too philosophical rather than proven physics.\n2. **Lack of Conclusive Experimental Proof:** Many traditional physicists doubted relativity because definitive, universally accepted experimental evidence confirming its predictions (such as the bending of light during a solar eclipse) was still relatively new and fiercely debated. \n\nBy awarding him the prize for the photoelectric effect—which had solid experimental backing—the Nobel Committee was able to honor Einstein's monumental contributions to science while avoiding the ongoing scientific debates surrounding relativity.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-04",
+    "bucket": "false_premise",
+    "query": "How many moons does the Sun have?",
+    "key_facts": [
+      "the Sun has no moons",
+      "moons orbit planets"
+    ],
+    "answer": "The Sun does not have any moons. By definition, moons are natural satellites that orbit planets, dwarf planets, or small solar system bodies, whereas the Sun is a star. Instead of having moons, the Sun is orbited by eight planets, at least five dwarf planets, thousands of asteroids, and trillions of comets and icy bodies.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-07",
+    "bucket": "false_premise",
+    "query": "Why did Meta deprecate React in 2024?",
+    "key_facts": [
+      "React was not deprecated",
+      "React 19 was released in December 2024"
+    ],
+    "answer": "Meta did not deprecate React itself in 2024; rather, Meta officially deprecated **Create React App (CRA)**. \n\nCreate React App was long used as a standard tool for setting up single-page React applications, but over the years, the web development ecosystem evolved significantly. Modern React applications rely heavily on full-stack frameworks and modern build tools that offer better performance, server-side rendering, routing, and optimized developer experience. \n\nBecause of this shift, Meta and the React team deprecated Create React App and now recommend using robust alternative frameworks and tools—such as Next.js, Remix, Expo (for native apps), or Vite—to build and scale React applications effectively.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-11",
+    "bucket": "false_premise",
+    "query": "What has Linus Torvalds changed since becoming CEO of Microsoft?",
+    "key_facts": [
+      "Linus Torvalds is not Microsoft's CEO",
+      "Satya Nadella is CEO"
+    ],
+    "answer": "Linus Torvalds has never been the CEO of Microsoft. He is best known as the creator of the Linux kernel and the version control system Git. \n\nThe current CEO of Microsoft is Satya Nadella, who took over the role in 2014. Under Nadella's leadership, Microsoft shifted its strategy significantly—moving away from its historical hostility toward open-source software and Linux, embracing cloud computing (Azure), and supporting Linux technologies extensively. Linus Torvalds himself works under the auspices of the Linux Foundation and continues to oversee the development of the Linux kernel.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-14",
+    "bucket": "false_premise",
+    "query": "Who won the 2030 FIFA World Cup?",
+    "key_facts": [
+      "the 2030 World Cup has not been played yet"
+    ],
+    "answer": "The 2030 FIFA World Cup has not taken place yet, so there is currently no winner. The tournament is scheduled to be hosted primarily by Morocco, Portugal, and Spain, with the opening matches taking place in Uruguay, Argentina, and Paraguay to celebrate the tournament's centenary.",
+    "judge_correct": true,
+    "human_correct": null
+  },
+  {
+    "id": "false_premise-17",
+    "bucket": "false_premise",
+    "query": "When was the Eiffel Tower moved to London?",
+    "key_facts": [
+      "it was never moved",
+      "it is in Paris"
+    ],
+    "answer": "The Eiffel Tower was never moved to London—it remains in Paris, France, where it was built for the 1889 World's Fair. \n\nHowever, your question might be inspired by a couple of historical and internet-related facts:\n1. **Watkin's Tower:** In 1890, after seeing the Eiffel Tower in Paris, British politician Sir Edward Watkin formed a company to build a massive rival iron tower in London (often called London's \"failed Eiffel Tower\"). It was partially constructed at Wembley Park before being abandoned and eventually torn down.\n2. **Internet Rumors/Humor:** There are occasional jokes, memes, and satirical posts on social media (such as Facebook groups or TikTok) joking about the Eiffel Tower being moved to places like Scotland or London, but these are entirely fictional.",
+    "judge_correct": true,
+    "human_correct": null
+  }
+]
