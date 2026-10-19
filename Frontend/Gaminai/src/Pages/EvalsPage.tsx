@@ -7,6 +7,7 @@ type Summary = {
   correctness: number | null;
   faithfulness: number | null;
   citationValidity: number | null;
+  citationPrecision?: number | null;
   citationRate: number | null;
   formatOk: number | null;
   latencyP50Ms: number | null;
@@ -22,6 +23,7 @@ type Run = {
   label: string;
   date: string;
   model: string;
+  retrieval?: string;
   judgeModel: string;
   git: string;
   summary: { overall: Summary; byBucket: Record<string, Summary> };
@@ -32,6 +34,13 @@ const BUCKET_NAMES: Record<string, string> = {
   multi_hop: 'Multi-hop',
   url_focus: 'URL-focused',
   false_premise: 'False premise',
+};
+
+const CONTEXT_NAMES: Record<string, string> = {
+  hybrid: 'Hybrid (vector + full-text, RRF)',
+  vector: 'Vector only',
+  fts: 'Full-text only',
+  snippets: 'Search snippets',
 };
 
 const pct = (value: number | null | undefined) =>
@@ -81,7 +90,8 @@ const EvalsPage = () => {
               <h2 id="latest-title">Latest run</h2>
               <p className="evals-muted">
                 {latest.label} · {new Date(latest.date).toLocaleDateString()} · answer model{' '}
-                <code>{latest.model}</code> · judge <code>{latest.judgeModel}</code> · commit{' '}
+                <code>{latest.model}</code> · context {CONTEXT_NAMES[latest.retrieval ?? 'snippets'] ?? latest.retrieval}
+                {' '}· judge <code>{latest.judgeModel}</code> · commit{' '}
                 <code>{latest.git}</code>
               </p>
             </div>
@@ -105,7 +115,12 @@ const EvalsPage = () => {
               <div>
                 <dt>Answers citing a source</dt>
                 <dd>{pct(overall.citationRate)}</dd>
-                <p>Answers that link at least one source URL</p>
+                <p>Answers with at least one inline [n] citation or source link</p>
+              </div>
+              <div>
+                <dt>Citation precision</dt>
+                <dd>{pct(overall.citationPrecision)}</dd>
+                <p>Citations whose source actually supports the sentence</p>
               </div>
               <div>
                 <dt>Latency p50 / p95</dt>
@@ -128,6 +143,7 @@ const EvalsPage = () => {
                     <th scope="col">Correctness</th>
                     <th scope="col">Faithfulness</th>
                     <th scope="col">Cites a source</th>
+                    <th scope="col">Citation precision</th>
                     <th scope="col">Valid citations</th>
                     <th scope="col">Format followed</th>
                     <th scope="col">p95 latency</th>
@@ -141,6 +157,7 @@ const EvalsPage = () => {
                       <td>{pct(s.correctness)}</td>
                       <td>{pct(s.faithfulness)}</td>
                       <td>{pct(s.citationRate)}</td>
+                      <td>{pct(s.citationPrecision)}</td>
                       <td>{pct(s.citationValidity)}</td>
                       <td>{pct(s.formatOk)}</td>
                       <td>{secs(s.latencyP95Ms)}</td>
@@ -160,10 +177,12 @@ const EvalsPage = () => {
                     <th scope="col">Run</th>
                     <th scope="col">Date</th>
                     <th scope="col">Model</th>
+                    <th scope="col">Context</th>
                     <th scope="col">Questions</th>
                     <th scope="col">Correctness</th>
                     <th scope="col">Faithfulness</th>
                     <th scope="col">Cites a source</th>
+                    <th scope="col">Citation precision</th>
                     <th scope="col">p50 latency</th>
                   </tr>
                 </thead>
@@ -173,10 +192,12 @@ const EvalsPage = () => {
                       <th scope="row">{run.label}</th>
                       <td>{new Date(run.date).toLocaleDateString()}</td>
                       <td><code>{run.model}</code></td>
+                      <td>{CONTEXT_NAMES[run.retrieval ?? 'snippets'] ?? run.retrieval}</td>
                       <td>{run.summary.overall.n}</td>
                       <td>{pct(run.summary.overall.correctness)}</td>
                       <td>{pct(run.summary.overall.faithfulness)}</td>
                       <td>{pct(run.summary.overall.citationRate)}</td>
+                      <td>{pct(run.summary.overall.citationPrecision)}</td>
                       <td>{secs(run.summary.overall.latencyP50Ms)}</td>
                     </tr>
                   ))}
