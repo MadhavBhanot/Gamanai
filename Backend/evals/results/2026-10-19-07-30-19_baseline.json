@@ -1,0 +1,2788 @@
+{
+  "meta": {
+    "label": "baseline",
+    "date": "2026-10-19T07:30:19.994Z",
+    "model": "google:gemini-3.5-flash-lite",
+    "judgeModel": "google:gemini-3.1-flash-lite",
+    "git": "7fd95ee",
+    "freshSearch": false
+  },
+  "summary": {
+    "overall": {
+      "n": 100,
+      "errors": 0,
+      "correctness": 0.9833333333333333,
+      "faithfulness": 0.9701904761904763,
+      "citationValidity": 1,
+      "citationRate": 0.01,
+      "formatOk": 1,
+      "latencyP50Ms": 1523,
+      "latencyP95Ms": 2183,
+      "ttftP50Ms": 988,
+      "ttftP95Ms": 1492,
+      "avgPromptTokens": 2831.79,
+      "avgCompletionTokens": 254.05
+    },
+    "byBucket": {
+      "factual": {
+        "n": 35,
+        "errors": 0,
+        "correctness": 0.9857142857142858,
+        "faithfulness": 1,
+        "citationValidity": null,
+        "citationRate": 0,
+        "formatOk": 1,
+        "latencyP50Ms": 1422,
+        "latencyP95Ms": 1847,
+        "ttftP50Ms": 994,
+        "ttftP95Ms": 1416,
+        "avgPromptTokens": 2969.6285714285714,
+        "avgCompletionTokens": 202
+      },
+      "multi_hop": {
+        "n": 25,
+        "errors": 0,
+        "correctness": 1,
+        "faithfulness": 0.9419047619047619,
+        "citationValidity": null,
+        "citationRate": 0,
+        "formatOk": 1,
+        "latencyP50Ms": 1381,
+        "latencyP95Ms": 1651,
+        "ttftP50Ms": 959,
+        "ttftP95Ms": 1273,
+        "avgPromptTokens": 2713.28,
+        "avgCompletionTokens": 186.24
+      },
+      "url_focus": {
+        "n": 20,
+        "errors": 0,
+        "correctness": 0.9416666666666667,
+        "faithfulness": 0.9307142857142857,
+        "citationValidity": 1,
+        "citationRate": 0.05,
+        "formatOk": 1,
+        "latencyP50Ms": 1742,
+        "latencyP95Ms": 2183,
+        "ttftP50Ms": 931,
+        "ttftP95Ms": 1251,
+        "avgPromptTokens": 3005.1,
+        "avgCompletionTokens": 295.6
+      },
+      "false_premise": {
+        "n": 20,
+        "errors": 0,
+        "correctness": 1,
+        "faithfulness": 0.9928571428571429,
+        "citationValidity": null,
+        "citationRate": 0,
+        "formatOk": 1,
+        "latencyP50Ms": 1850,
+        "latencyP95Ms": 2849,
+        "ttftP50Ms": 1130,
+        "ttftP95Ms": 1801,
+        "avgPromptTokens": 2565.4,
+        "avgCompletionTokens": 388.35
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "factual-01",
+      "bucket": "factual",
+      "query": "Who won the 2024 Nobel Prize in Physics?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1416,
+      "totalMs": 1795,
+      "promptTokens": 2998,
+      "completionTokens": 173,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies both winners of the 2024 Nobel Prize in Physics and accurately quotes the reason for the award as provided in the source material."
+      },
+      "answer": "The 2024 Nobel Prize in Physics was awarded jointly to **John J. Hopfield** and **Geoffrey E. Hinton** \"for foundational discoveries and inventions that enable machine learning with artificial neural networks.\""
+    },
+    {
+      "id": "factual-02",
+      "bucket": "factual",
+      "query": "Who won the 2024 Nobel Prize in Chemistry?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1034,
+      "totalMs": 1451,
+      "promptTokens": 2810,
+      "completionTokens": 188,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies all three Nobel laureates and their respective contributions as supported by the provided sources."
+      },
+      "answer": "The 2024 Nobel Prize in Chemistry was awarded to three scientists:\n\n* **David Baker** “for computational protein design”\n* **Demis Hassabis** and **John M. Jumper** jointly “for protein structure prediction”"
+    },
+    {
+      "id": "factual-03",
+      "bucket": "factual",
+      "query": "Which team won the 2023 ICC Men's Cricket World Cup?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 856,
+      "totalMs": 1315,
+      "promptTokens": 3017,
+      "completionTokens": 207,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner of the 2023 ICC Men's Cricket World Cup and correctly describes the final match details supported by the provided sources."
+      },
+      "answer": "Australia won the 2023 ICC Men's Cricket World Cup. They defeated India by 6 wickets in the final, which took place on November 19, 2023, in Ahmedabad, securing their sixth World Cup title."
+    },
+    {
+      "id": "factual-04",
+      "bucket": "factual",
+      "query": "Who won the 2024 ICC Men's T20 World Cup?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1368,
+      "totalMs": 1774,
+      "promptTokens": 2809,
+      "completionTokens": 209,
+      "sourceCount": 8,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner and the opponent in the final, and all claims are supported by the provided sources."
+      },
+      "answer": "India won the 2024 ICC Men's T20 World Cup, defeating South Africa by 7 runs in the final held at the Kensington Oval in Barbados on June 29, 2024."
+    },
+    {
+      "id": "factual-05",
+      "bucket": "factual",
+      "query": "Which countries topped the gold medal table at the Paris 2024 Olympics?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 979,
+      "totalMs": 1618,
+      "promptTokens": 2953,
+      "completionTokens": 285,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies that both the US and China won 40 gold medals and that the US ranked first overall due to their higher total medal count, which is supported by the provided sources."
+      },
+      "answer": "At the Paris 2024 Olympic Games, the **United States** and **China** tied for the most gold medals, with **40 gold medals** each. \n\nHowever, the **United States** topped the final medal table for the fourth consecutive Summer Games because they won more silver medals (44 silver and 42 bronze, for a total of 126 medals), whereas China finished in second place with 27 silver and 24 bronze medals (91 total medals)."
+    },
+    {
+      "id": "factual-06",
+      "bucket": "factual",
+      "query": "When did Chandrayaan-3 land on the Moon?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 951,
+      "totalMs": 1447,
+      "promptTokens": 2800,
+      "completionTokens": 189,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately states the date and location of the landing, and provides additional context supported by the sources."
+      },
+      "answer": "Chandrayaan-3 successfully landed on the Moon on **August 23, 2023, at 18:04 IST** (12:33 UTC). It touched down near the lunar south pole, making India the first nation to achieve a soft landing in that region and the fourth overall to successfully land a spacecraft on the Moon."
+    },
+    {
+      "id": "factual-07",
+      "bucket": "factual",
+      "query": "Which company released Llama 3 and when?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 988,
+      "totalMs": 1316,
+      "promptTokens": 2730,
+      "completionTokens": 162,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Meta as the company and April 18, 2024, as the release date, both of which are supported by the provided sources."
+      },
+      "answer": "Meta released Llama 3 on April 18, 2024."
+    },
+    {
+      "id": "factual-08",
+      "bucket": "factual",
+      "query": "When was React 19 released as stable?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1072,
+      "totalMs": 1392,
+      "promptTokens": 3040,
+      "completionTokens": 150,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 1,
+        "claims_supported": 1,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the stable release date of React 19 as December 5, 2024, which is supported by multiple provided sources."
+      },
+      "answer": "React 19 was officially released as stable on December 5, 2024."
+    },
+    {
+      "id": "factual-09",
+      "bucket": "factual",
+      "query": "When did Node.js 22 enter Long Term Support?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 849,
+      "totalMs": 1205,
+      "promptTokens": 3395,
+      "completionTokens": 187,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the date Node.js 22 entered LTS and its codename, both of which are supported by the provided sources."
+      },
+      "answer": "Node.js 22 officially entered Long Term Support (LTS) on October 29, 2024, under the codename 'Jod'."
+    },
+    {
+      "id": "factual-10",
+      "bucket": "factual",
+      "query": "Who won the 2024 men's Ballon d'Or?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1050,
+      "totalMs": 1418,
+      "promptTokens": 3385,
+      "completionTokens": 180,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 1,
+        "claims_supported": 1,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Rodri as the winner of the 2024 men's Ballon d'Or, which is supported by the provided sources."
+      },
+      "answer": "Manchester City and Spain midfielder Rodri won the 2024 men's Ballon d'Or."
+    },
+    {
+      "id": "factual-11",
+      "bucket": "factual",
+      "query": "Which country hosted the 2023 G20 summit?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 929,
+      "totalMs": 1264,
+      "promptTokens": 2850,
+      "completionTokens": 182,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies India as the host country and New Delhi as the host city, both of which are supported by the provided sources."
+      },
+      "answer": "India hosted the 2023 G20 summit. The eighteenth meeting of the G20 was held in New Delhi on September 9–10, 2023, under India's presidency."
+    },
+    {
+      "id": "factual-12",
+      "bucket": "factual",
+      "query": "Who won the 2024 US presidential election?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 831,
+      "totalMs": 1251,
+      "promptTokens": 2873,
+      "completionTokens": 204,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner of the 2024 US presidential election and provides correct supporting details found in the provided sources."
+      },
+      "answer": "Donald Trump won the 2024 United States presidential election. He defeated the Democratic nominee, Vice President Kamala Harris, securing 312 electoral votes to her 226 and also winning the national popular vote. He was subsequently elected as the 47th president of the United States."
+    },
+    {
+      "id": "factual-13",
+      "bucket": "factual",
+      "query": "Who became UK Prime Minister in July 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 862,
+      "totalMs": 1272,
+      "promptTokens": 2841,
+      "completionTokens": 201,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Keir Starmer as the Prime Minister who took office in July 2024 and provides accurate details supported by the provided sources."
+      },
+      "answer": "Sir Keir Starmer became the Prime Minister of the United Kingdom in July 2024. He led the Labour Party to a victory in the general election and was appointed prime minister by King Charles III on July 5, 2024."
+    },
+    {
+      "id": "factual-14",
+      "bucket": "factual",
+      "query": "When was the Apple Vision Pro released in the US?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1140,
+      "totalMs": 1607,
+      "promptTokens": 2891,
+      "completionTokens": 193,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the release date and provides accurate context regarding pre-orders and the initial announcement date, all of which are supported by the provided sources."
+      },
+      "answer": "The Apple Vision Pro was released in the United States on February 2, 2024, with pre-orders beginning in mid-January of that same year. It was initially announced earlier on June 5, 2023, at Apple's Worldwide Developers Conference (WWDC)."
+    },
+    {
+      "id": "factual-15",
+      "bucket": "factual",
+      "query": "What is the tallest building in the world and how tall is it?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 873,
+      "totalMs": 1345,
+      "promptTokens": 2841,
+      "completionTokens": 221,
+      "sourceCount": 8,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the Burj Khalifa and its height of 828 meters, with all claims supported by the provided sources."
+      },
+      "answer": "The tallest building in the world is the **Burj Khalifa**, located in Dubai, United Arab Emirates. It stands at a staggering height of **828 meters (2,717 feet)** and features 163 floors. It has held the title of the world's tallest building since its opening in 2010."
+    },
+    {
+      "id": "factual-16",
+      "bucket": "factual",
+      "query": "Which team won IPL 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1001,
+      "totalMs": 1380,
+      "promptTokens": 2872,
+      "completionTokens": 178,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the winner of IPL 2024 and provides accurate details about the final match supported by the provided sources."
+      },
+      "answer": "The Kolkata Knight Riders (KKR) won the IPL 2024 trophy. They defeated Sunrisers Hyderabad by 8 wickets in the final to claim their third IPL title."
+    },
+    {
+      "id": "factual-17",
+      "bucket": "factual",
+      "query": "Which team won IPL 2025?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1201,
+      "totalMs": 1593,
+      "promptTokens": 3216,
+      "completionTokens": 175,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the winner of the 2025 IPL as Royal Challengers Bengaluru and notes it was their first title, both of which are supported by the provided sources."
+      },
+      "answer": "Royal Challengers Bengaluru (RCB) won the IPL 2025 title, securing their maiden championship by defeating the Punjab Kings in the final."
+    },
+    {
+      "id": "factual-18",
+      "bucket": "factual",
+      "query": "Who won the 2025 ICC Champions Trophy?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 917,
+      "totalMs": 1285,
+      "promptTokens": 3316,
+      "completionTokens": 184,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner and the opponent in the final, both of which are supported by the provided sources."
+      },
+      "answer": "India won the ICC Champions Trophy 2025 by defeating New Zealand by 4 wickets in the final. This marked India's third Champions Trophy title."
+    },
+    {
+      "id": "factual-19",
+      "bucket": "factual",
+      "query": "Who was elected Pope in 2025?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 914,
+      "totalMs": 1293,
+      "promptTokens": 2659,
+      "completionTokens": 174,
+      "sourceCount": 8,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the Pope elected in 2025 and his secular name, supported by the provided sources."
+      },
+      "answer": "Pope Leo XIV (born Robert Francis Prevost) was elected Pope on May 8, 2025. He is notable for being the first American pope and the first Augustinian to lead the Roman Catholic Church."
+    },
+    {
+      "id": "factual-20",
+      "bucket": "factual",
+      "query": "When did Microsoft complete its acquisition of Activision Blizzard and for roughly how much?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 836,
+      "totalMs": 1430,
+      "promptTokens": 2743,
+      "completionTokens": 213,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the completion date and the acquisition price as supported by the provided sources."
+      },
+      "answer": "Microsoft officially completed its acquisition of Activision Blizzard on **October 13, 2023**, for approximately **$68.7 billion** (frequently rounded to $69 billion) in an all-cash deal."
+    },
+    {
+      "id": "factual-21",
+      "bucket": "factual",
+      "query": "What major experimental runtime change shipped in Python 3.13?",
+      "correctness": 0.5,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1040,
+      "totalMs": 1700,
+      "promptTokens": 2916,
+      "completionTokens": 301,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 8,
+        "claims_supported": 8,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the major experimental runtime changes but omits the release date of October 2024."
+      },
+      "answer": "Python 3.13 introduced a couple of major experimental runtime changes:\n\n1. **Free-Threaded Mode (GIL-Free Python):** Per PEP 703, CPython now includes experimental support for running in a free-threaded mode where the Global Interpreter Lock (GIL) can be disabled. This allows true concurrent execution of pure Python code and better utilization of multicore processors. This mode is optional and not enabled by default.\n2. **Experimental JIT Compiler:** Python 3.13 features a preliminary, experimental Just-In-Time (JIT) compiler (PEP 744) designed to lay the groundwork for significant future performance improvements."
+    },
+    {
+      "id": "factual-22",
+      "bucket": "factual",
+      "query": "Who won UEFA Euro 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 948,
+      "totalMs": 1313,
+      "promptTokens": 2744,
+      "completionTokens": 180,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner, the score, the opponent, and the record-breaking nature of the victory, all of which are supported by the provided sources."
+      },
+      "answer": "Spain won UEFA Euro 2024. They defeated England 2-1 in the final held at the Olympiastadion in Berlin, securing a record-breaking fourth European Championship title."
+    },
+    {
+      "id": "factual-23",
+      "bucket": "factual",
+      "query": "Who won Copa America 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 955,
+      "totalMs": 1386,
+      "promptTokens": 2613,
+      "completionTokens": 203,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner and the opponent, and provides additional correct details supported by the provided sources."
+      },
+      "answer": "Argentina won the 2024 Copa América title by defeating Colombia 1-0 in the final. The decisive goal was scored in extra time (the 112th minute) by Lautaro Martínez. This victory marked a record-extending 16th Copa América title for Argentina."
+    },
+    {
+      "id": "factual-24",
+      "bucket": "factual",
+      "query": "When did GitHub Copilot become generally available?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1072,
+      "totalMs": 1518,
+      "promptTokens": 2652,
+      "completionTokens": 204,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately states the general availability date and the technical preview period, with all claims supported by the provided sources."
+      },
+      "answer": "GitHub Copilot became generally available to all developers in **June 2022** (specifically on June 21, 2022), following its initial technical preview period that began in June 2021."
+    },
+    {
+      "id": "factual-25",
+      "bucket": "factual",
+      "query": "Which film won Best Picture at the 2024 Academy Awards and who directed it?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1492,
+      "totalMs": 1847,
+      "promptTokens": 3667,
+      "completionTokens": 194,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the Best Picture winner and its director, both of which are supported by the provided sources."
+      },
+      "answer": "At the 2024 Academy Awards (96th Oscars), ***Oppenheimer*** won the award for Best Picture. The film was directed by **Christopher Nolan**, who also took home the Oscar for Best Director."
+    },
+    {
+      "id": "factual-26",
+      "bucket": "factual",
+      "query": "Which film won Best Picture at the 2025 Academy Awards?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 997,
+      "totalMs": 1452,
+      "promptTokens": 3092,
+      "completionTokens": 213,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies 'Anora' as the Best Picture winner and provides accurate details supported by the provided sources."
+      },
+      "answer": "At the 97th Academy Awards in 2025, the film **\"Anora\"** won the Oscar for Best Picture. Directed by Sean Baker, the film took home five awards in total, including Best Directing and Best Actress in a Leading Role for Mikey Madison."
+    },
+    {
+      "id": "factual-27",
+      "bucket": "factual",
+      "query": "Which country won the most medals at the 2022 Asian Games held in Hangzhou in 2023?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 994,
+      "totalMs": 1506,
+      "promptTokens": 3018,
+      "completionTokens": 230,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies China as the winner and provides accurate medal statistics supported by the provided sources."
+      },
+      "answer": "China won the most medals at the 2022 Asian Games held in Hangzhou, finishing at the top of the medal table with a total of 383 medals, which included 201 gold, 111 silver, and 71 bronze medals."
+    },
+    {
+      "id": "factual-28",
+      "bucket": "factual",
+      "query": "When was the James Webb Space Telescope launched?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 897,
+      "totalMs": 1261,
+      "promptTokens": 2786,
+      "completionTokens": 168,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the launch date and provides accurate supporting details regarding the launch vehicle and location found in the sources."
+      },
+      "answer": "The James Webb Space Telescope was launched on December 25, 2021, on an Ariane 5 rocket from Europe's Spaceport in Kourou, French Guiana."
+    },
+    {
+      "id": "factual-29",
+      "bucket": "factual",
+      "query": "Which spacecraft made the first soft landing on the far side of the Moon?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1188,
+      "totalMs": 1698,
+      "promptTokens": 2820,
+      "completionTokens": 352,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the spacecraft and the date of the first soft landing on the far side of the Moon, with all claims supported by the provided sources."
+      },
+      "answer": "The first spacecraft to make a soft landing on the far side of the Moon is **Chang'e 4**, operated by the China National Space Administration (CNSA). It successfully touched down on January 3, 2019, within the Von Kármán crater located in the South Pole-Aitken Basin. Following its landing, it deployed the Yutu-2 rover to begin the first-ever close-up exploration of the lunar far side."
+    },
+    {
+      "id": "factual-30",
+      "bucket": "factual",
+      "query": "When did Twitter rebrand to X?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1024,
+      "totalMs": 1523,
+      "promptTokens": 2857,
+      "completionTokens": 214,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the start date of the rebrand and provides accurate, source-supported details regarding the logo change and domain transition."
+      },
+      "answer": "Twitter officially began its rebrand to X on **July 23, 2023**. During this transition, owner Elon Musk replaced the platform's iconic blue bird logo with a stylized \"X\". Later on, the official domain name transitioned from twitter.com to x.com on May 17, 2024."
+    },
+    {
+      "id": "factual-31",
+      "bucket": "factual",
+      "query": "Who won the 2024 ICC Women's T20 World Cup?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1094,
+      "totalMs": 1673,
+      "promptTokens": 3304,
+      "completionTokens": 225,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the winner and the opponent in the final, supported by the provided sources."
+      },
+      "answer": "New Zealand's women's cricket team won the 2024 ICC Women's T20 World Cup, claiming their first-ever title in this format. They defeated South Africa by 32 runs in the final held in Dubai, United Arab Emirates."
+    },
+    {
+      "id": "factual-32",
+      "bucket": "factual",
+      "query": "Which country became the world's most populous in 2023 according to the UN?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 888,
+      "totalMs": 1315,
+      "promptTokens": 3296,
+      "completionTokens": 176,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies India as the country that overtook China in 2023 based on the provided UN sources."
+      },
+      "answer": "According to United Nations projections and reports, India became the world's most populous country in 2023, overtaking China."
+    },
+    {
+      "id": "factual-33",
+      "bucket": "factual",
+      "query": "Who won the 2024 Formula 1 drivers' championship?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1098,
+      "totalMs": 1422,
+      "promptTokens": 3201,
+      "completionTokens": 178,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Max Verstappen as the 2024 champion and notes his fourth title, both of which are supported by the provided sources."
+      },
+      "answer": "Max Verstappen won the 2024 Formula One World Drivers' Championship, securing his fourth consecutive world title with Red Bull Racing."
+    },
+    {
+      "id": "factual-34",
+      "bucket": "factual",
+      "query": "Who won the 2024 Wimbledon men's singles title?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 830,
+      "totalMs": 1237,
+      "promptTokens": 3251,
+      "completionTokens": 208,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Carlos Alcaraz as the winner and provides accurate details about the opponent and score supported by the provided sources."
+      },
+      "answer": "Carlos Alcaraz won the 2024 Wimbledon men's singles title. He defeated Novak Djokovic in the final with a score of 6–2, 6–2, 7–6 (7–4) to claim his second consecutive Wimbledon championship."
+    },
+    {
+      "id": "factual-35",
+      "bucket": "factual",
+      "query": "Who is the CEO of Nvidia?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1128,
+      "totalMs": 2217,
+      "promptTokens": 2681,
+      "completionTokens": 169,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Jensen Huang as the CEO of Nvidia and provides accurate supporting details found in the provided sources."
+      },
+      "answer": "The CEO of Nvidia is Jensen Huang. He co-founded Nvidia in 1993 and has served as its president, chief executive officer, and a member of the board of directors ever since."
+    },
+    {
+      "id": "multi_hop-01",
+      "bucket": "multi_hop",
+      "query": "The 2024 Nobel Physics laureate who worked at Google earned his PhD at which university?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 858,
+      "totalMs": 1445,
+      "promptTokens": 2965,
+      "completionTokens": 228,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Geoffrey Hinton as the laureate who worked at Google and accurately states he earned his PhD from the University of Edinburgh."
+      },
+      "answer": "Geoffrey Hinton, one of the 2024 Nobel Physics laureates who notably worked at Google, earned his PhD in Artificial Intelligence from the University of Edinburgh in 1978."
+    },
+    {
+      "id": "multi_hop-02",
+      "bucket": "multi_hop",
+      "query": "In which city was the current CEO of Microsoft born?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1130,
+      "totalMs": 1443,
+      "promptTokens": 2565,
+      "completionTokens": 142,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Satya Nadella as the CEO of Microsoft and states he was born in Hyderabad, both of which are supported by the provided sources."
+      },
+      "answer": "The current CEO of Microsoft, Satya Nadella, was born in Hyderabad, India."
+    },
+    {
+      "id": "multi_hop-03",
+      "bucket": "multi_hop",
+      "query": "Who founded the company that acquired GitHub, and in what year was GitHub acquired?",
+      "correctness": 1,
+      "faithfulness": 0.7142857142857143,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 974,
+      "totalMs": 1507,
+      "promptTokens": 2606,
+      "completionTokens": 223,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 7,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the acquirer, the founders of the acquirer, and the year of acquisition, though it includes specific details about Microsoft's founding date that were not provided in the source text."
+      },
+      "answer": "GitHub was acquired by Microsoft, which was founded by **Bill Gates** and **Paul Allen** on April 4, 1975. \n\nMicrosoft announced and completed its acquisition of GitHub in **2018** (the deal was announced on June 4, 2018, and closed on October 26, 2018)."
+    },
+    {
+      "id": "multi_hop-04",
+      "bucket": "multi_hop",
+      "query": "The director of Oppenheimer also directed which 2010 film about dreams?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1167,
+      "totalMs": 1573,
+      "promptTokens": 2176,
+      "completionTokens": 165,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Christopher Nolan as the director of both Oppenheimer and Inception, and accurately describes the premise of Inception based on the provided sources."
+      },
+      "answer": "The director of *Oppenheimer*, Christopher Nolan, also directed the 2010 sci-fi thriller ***Inception***, which revolves around dream-sharing technology and a heist inside the subconscious mind."
+    },
+    {
+      "id": "multi_hop-05",
+      "bucket": "multi_hop",
+      "query": "What is the capital of the country that won Euro 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 847,
+      "totalMs": 1178,
+      "promptTokens": 3059,
+      "completionTokens": 166,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Spain as the winner of Euro 2024 and Madrid as its capital, with all claims supported by the provided sources."
+      },
+      "answer": "Spain won UEFA Euro 2024 by defeating England 2-1 in the final. The capital of Spain is Madrid."
+    },
+    {
+      "id": "multi_hop-06",
+      "bucket": "multi_hop",
+      "query": "How many years after Google was founded was Alphabet created?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 875,
+      "totalMs": 1316,
+      "promptTokens": 2660,
+      "completionTokens": 178,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the founding dates of both companies and the 17-year difference between them, all of which are supported by the provided sources."
+      },
+      "answer": "Alphabet Inc. was created 17 years after Google was founded. Google was established on September 4, 1998, while Alphabet was formed through a corporate restructuring on October 2, 2015."
+    },
+    {
+      "id": "multi_hop-07",
+      "bucket": "multi_hop",
+      "query": "TypeScript compiles to a language. Who created that language and at which company?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1013,
+      "totalMs": 1435,
+      "promptTokens": 2550,
+      "completionTokens": 188,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies that TypeScript compiles to JavaScript, and accurately attributes the creation of JavaScript to Brendan Eich at Netscape."
+      },
+      "answer": "TypeScript compiles to **JavaScript**. \n\nJavaScript was created by **Brendan Eich** while he was working at **Netscape Communications Corporation** (commonly known simply as Netscape) in 1995."
+    },
+    {
+      "id": "multi_hop-08",
+      "bucket": "multi_hop",
+      "query": "In which country was the founder of SpaceX born?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 926,
+      "totalMs": 1188,
+      "promptTokens": 2568,
+      "completionTokens": 132,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Elon Musk as the founder of SpaceX and states he was born in South Africa, which is fully supported by the provided sources."
+      },
+      "answer": "The founder of SpaceX, Elon Musk, was born in **South Africa** (specifically in Pretoria)."
+    },
+    {
+      "id": "multi_hop-09",
+      "bucket": "multi_hop",
+      "query": "In which stadium and city was the 2023 Men's Cricket World Cup final played?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 948,
+      "totalMs": 1213,
+      "promptTokens": 2873,
+      "completionTokens": 171,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies both the stadium and the city as specified in the reference facts and supported by the provided sources."
+      },
+      "answer": "The 2023 Men's Cricket World Cup final was played at the **Narendra Modi Stadium** in **Ahmedabad**, India."
+    },
+    {
+      "id": "multi_hop-10",
+      "bucket": "multi_hop",
+      "query": "Who captained the team that won the 2024 Men's T20 World Cup?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 900,
+      "totalMs": 1364,
+      "promptTokens": 2654,
+      "completionTokens": 194,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies both the winning team and the captain as supported by the provided sources."
+      },
+      "answer": "The Indian cricket team won the 2024 Men's T20 World Cup under the captaincy of **Rohit Sharma**."
+    },
+    {
+      "id": "multi_hop-11",
+      "bucket": "multi_hop",
+      "query": "Which company created the Llama models, and who was its chief AI scientist in 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 820,
+      "totalMs": 1244,
+      "promptTokens": 2937,
+      "completionTokens": 176,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Meta as the creator of Llama and Yann LeCun as the Chief AI Scientist, both of which are supported by the provided sources."
+      },
+      "answer": "The Llama models were created by Meta (Meta AI). In 2024, Meta's Chief AI Scientist was Yann LeCun."
+    },
+    {
+      "id": "multi_hop-12",
+      "bucket": "multi_hop",
+      "query": "Which city hosted the Summer Olympics before Paris 2024, and in what year were those Games actually held?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1161,
+      "totalMs": 1607,
+      "promptTokens": 2937,
+      "completionTokens": 219,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The assistant correctly identified Tokyo as the host and 2021 as the year the Games were held, supported by the provided sources."
+      },
+      "answer": "The Summer Olympics before Paris 2024 were hosted by Tokyo, Japan. Although they were officially designated as the 2020 Summer Olympics, the Games were actually held in **2021** (from July 23 to August 8, 2021) due to the COVID-19 pandemic."
+    },
+    {
+      "id": "multi_hop-13",
+      "bucket": "multi_hop",
+      "query": "The creator of Linux also created which version control system?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 959,
+      "totalMs": 1337,
+      "promptTokens": 2629,
+      "completionTokens": 179,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Linus Torvalds as the creator of Linux and Git, and provides accurate context regarding the development of Git supported by the sources."
+      },
+      "answer": "The creator of Linux, Linus Torvalds, also created the distributed version control system **Git**. He began developing it in April 2005 after the proprietary system previously used for Linux kernel development (BitKeeper) revoked its free license."
+    },
+    {
+      "id": "multi_hop-14",
+      "bucket": "multi_hop",
+      "query": "In which country was Nvidia's CEO born?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 993,
+      "totalMs": 1308,
+      "promptTokens": 2671,
+      "completionTokens": 139,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Jensen Huang as the CEO and states he was born in Taiwan, which is supported by the provided sources."
+      },
+      "answer": "Nvidia's CEO, Jensen Huang, was born in **Taiwan** (specifically in Tainan)."
+    },
+    {
+      "id": "multi_hop-15",
+      "bucket": "multi_hop",
+      "query": "Which river flows through the city that hosted the 2023 G20 summit?",
+      "correctness": 1,
+      "faithfulness": 0.5,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1102,
+      "totalMs": 1566,
+      "promptTokens": 2758,
+      "completionTokens": 185,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 1,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies New Delhi as the host city, but the provided sources do not contain information about the Yamuna River."
+      },
+      "answer": "The 2023 G20 summit was hosted in **New Delhi**, India. The major river that flows through New Delhi is the **Yamuna River**."
+    },
+    {
+      "id": "multi_hop-16",
+      "bucket": "multi_hop",
+      "query": "What were the names of the lander and rover of the mission that made India the first country to land near the lunar south pole?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 887,
+      "totalMs": 1287,
+      "promptTokens": 3383,
+      "completionTokens": 196,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the mission name and the names of the lander and rover, all of which are supported by the provided sources."
+      },
+      "answer": "The lander and rover of India's Chandrayaan-3 mission, which successfully landed near the Moon's south pole, were named **Vikram** (the lunar lander) and **Pragyan** (the lunar rover)."
+    },
+    {
+      "id": "multi_hop-17",
+      "bucket": "multi_hop",
+      "query": "Which lab developed AlphaFold, and which of its researchers shared the 2024 Nobel Prize in Chemistry?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 797,
+      "totalMs": 1387,
+      "promptTokens": 2805,
+      "completionTokens": 252,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the developer of AlphaFold and the two researchers who shared the Nobel Prize, with all claims supported by the provided sources."
+      },
+      "answer": "AlphaFold was developed by **Google DeepMind**, based in London, UK. Two of its researchers, **Demis Hassabis** and **John M. Jumper**, shared one half of the 2024 Nobel Prize in Chemistry for their pioneering work on the AI-powered protein structure prediction model, AlphaFold2. (The other half of the prize was awarded to David Baker for computational protein design)."
+    },
+    {
+      "id": "multi_hop-18",
+      "bucket": "multi_hop",
+      "query": "At which company was React created, and by whom?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 947,
+      "totalMs": 1381,
+      "promptTokens": 2717,
+      "completionTokens": 178,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the company and creator while providing correct supporting details found in the sources."
+      },
+      "answer": "React was created at **Facebook** (now known as Meta) by software engineer **Jordan Walke**. He developed an early prototype called \"FaxJS\" in 2011 before it was later released as an open-source library in 2013."
+    },
+    {
+      "id": "multi_hop-19",
+      "bucket": "multi_hop",
+      "query": "What currency is used in the country Rodri represents in international football?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 989,
+      "totalMs": 1335,
+      "promptTokens": 2405,
+      "completionTokens": 140,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies that Rodri plays for Spain and that the currency of Spain is the euro, both of which are supported by the provided context and general knowledge."
+      },
+      "answer": "Rodri represents Spain in international football. The currency used in Spain is the euro (€)."
+    },
+    {
+      "id": "multi_hop-20",
+      "bucket": "multi_hop",
+      "query": "Which company owns Instagram, and in what year did it acquire it?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 822,
+      "totalMs": 1211,
+      "promptTokens": 2380,
+      "completionTokens": 163,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies Meta as the owner and 2012 as the acquisition year, with all claims supported by the provided sources."
+      },
+      "answer": "Instagram is owned by Meta Platforms, Inc. (formerly known as Facebook). Meta acquired Instagram in April 2012 for approximately $1 billion in cash and stock."
+    },
+    {
+      "id": "multi_hop-21",
+      "bucket": "multi_hop",
+      "query": "Who is the first author of 'Attention Is All You Need', and where did the authors work?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1279,
+      "totalMs": 1699,
+      "promptTokens": 2548,
+      "completionTokens": 204,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Ashish Vaswani as the first author and confirms the authors worked at Google, both of which are supported by the provided sources."
+      },
+      "answer": "The first author of the 2017 research paper \"Attention Is All You Need\" is Ashish Vaswani. At the time the paper was written and published, all eight co-authors worked at Google (specifically at Google Brain and Google Research)."
+    },
+    {
+      "id": "multi_hop-22",
+      "bucket": "multi_hop",
+      "query": "The founder of Amazon also founded which space company?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 990,
+      "totalMs": 1383,
+      "promptTokens": 2466,
+      "completionTokens": 168,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Jeff Bezos as the founder of Amazon and Blue Origin, and all claims are supported by the provided sources."
+      },
+      "answer": "The founder of Amazon, Jeff Bezos, also founded the aerospace manufacturer and sub-orbital spaceflight services company **Blue Origin**. He established the company in September 2000 with a long-term vision of enabling millions of people to live and work in space."
+    },
+    {
+      "id": "multi_hop-23",
+      "bucket": "multi_hop",
+      "query": "What is the official language of the country that won the 2022 FIFA World Cup?",
+      "correctness": 1,
+      "faithfulness": 0.5,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1273,
+      "totalMs": 1554,
+      "promptTokens": 3416,
+      "completionTokens": 305,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 1,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies Argentina as the winner and Spanish as its official language, though the language fact is not explicitly stated in the provided sources."
+      },
+      "answer": "The country that won the 2022 FIFA World Cup is Argentina. The official language of Argentina is Spanish."
+    },
+    {
+      "id": "multi_hop-24",
+      "bucket": "multi_hop",
+      "query": "Nvidia's H100 GPU architecture is named after a person. What is the architecture called and who was that person?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 901,
+      "totalMs": 1293,
+      "promptTokens": 2783,
+      "completionTokens": 187,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the architecture name and the person it is named after, with all claims supported by the provided sources."
+      },
+      "answer": "Nvidia's H100 GPU architecture is called **Hopper**. It is named after **Grace Hopper**, a pioneering U.S. computer scientist, United States Navy rear admiral, and one of the first programmers of the Harvard Mark I."
+    },
+    {
+      "id": "multi_hop-25",
+      "bucket": "multi_hop",
+      "query": "Who founded the company that makes Pixel phones, and in what year was it founded?",
+      "correctness": 1,
+      "faithfulness": 0.8333333333333334,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1186,
+      "totalMs": 1651,
+      "promptTokens": 2321,
+      "completionTokens": 178,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the company and founding year, but includes the founders' names which are not mentioned in the provided sources."
+      },
+      "answer": "Google, the company that makes Pixel phones, was founded by Larry Page and Sergey Brin in **1998**. Headquartered in Mountain View, California, Google officially launched the Pixel smartphone brand in 2016, following its earlier Nexus device lineup."
+    },
+    {
+      "id": "url_focus-01",
+      "bucket": "url_focus",
+      "query": "What can this API read during render? https://react.dev/reference/react/use",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 862,
+      "totalMs": 1550,
+      "promptTokens": 2846,
+      "completionTokens": 241,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies that the use API reads promises and context, and accurately notes its ability to be called within loops and conditionals."
+      },
+      "answer": "The React `use` API can read resources during rendering, specifically:\n\n1. **Promises**: You can pass a promise to `use`, and React will Suspend until the promise resolves.\n2. **Context**: You can pass a context to `use` to read its value (similar to `useContext`, but unlike `useContext`, `use` can be called within loops and conditional statements like `if`)."
+    },
+    {
+      "id": "url_focus-02",
+      "bucket": "url_focus",
+      "query": "Which release phases does Node.js describe here, and which should production apps use? https://nodejs.org/en/about/previous-releases",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 980,
+      "totalMs": 2183,
+      "promptTokens": 3362,
+      "completionTokens": 403,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 6,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the release phases and correctly advises that production applications should use LTS versions, all of which are supported by the provided source text."
+      },
+      "answer": "According to the official Node.js documentation, major versions typically go through phases such as the **Current** release status (where new features are introduced and tested for six months to give library authors time to add support) and **LTS (Long-Term Support)** release status. Starting with Node.js 27, the release cycle becomes annual, with every major version moving to LTS status after its six-month Current phase and six additional months of an Alpha phase.\n\n**Which phases production apps should use:**\nProduction applications should run on **LTS (Long-Term Support)** versions (such as Active LTS or Maintenance LTS). LTS releases guarantee stability, reliability, and critical bug/security fixes over an extended period, making them safe for enterprise and production environments. The short-term \"Current\" release is better suited for testing new features or local development rather than live production use."
+    },
+    {
+      "id": "url_focus-03",
+      "bucket": "url_focus",
+      "query": "Summarize what narrowing means on this page https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+      "correctness": 0.6666666666666666,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1147,
+      "totalMs": 1743,
+      "promptTokens": 3190,
+      "completionTokens": 198,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly defines narrowing and identifies type guards and typeof, but it omits the other specific types of checks mentioned in the reference facts."
+      },
+      "answer": "On the TypeScript documentation page, **narrowing** is defined as the process of refining a variable's type to a more specific type than initially declared. \n\nTypeScript achieves this by analyzing possible execution paths in code through control flow analysis. When it encounters special checks—known as **type guards** (such as an `if` statement checking `typeof padding === \"number\"`)—along with assignments, it understands the code structure and determines the most specific possible type of a value at any given position."
+    },
+    {
+      "id": "url_focus-04",
+      "bucket": "url_focus",
+      "query": "What content type must the server send for this to work? https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "correctness": 0.5,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1162,
+      "totalMs": 1544,
+      "promptTokens": 3534,
+      "completionTokens": 192,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the required MIME type but omits the EventSource API, which was listed as a key fact."
+      },
+      "answer": "For Server-Sent Events to work, the server must respond with the MIME type `text/event-stream`. Each notification is sent as a block of text terminated by a pair of newlines."
+    },
+    {
+      "id": "url_focus-05",
+      "bucket": "url_focus",
+      "query": "Which ranking functions does this page describe? https://www.postgresql.org/docs/current/textsearch-controls.html",
+      "correctness": 1,
+      "faithfulness": 0.7142857142857143,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1489,
+      "totalMs": 2314,
+      "promptTokens": 3652,
+      "completionTokens": 331,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 7,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the ranking functions, but the provided source text snippet does not explicitly name them, only describing their functionality."
+      },
+      "answer": "Based on the PostgreSQL documentation page provided, PostgreSQL provides **two predefined ranking functions** for full-text search:\n\n1. **`ts_rank`** (Document Frequency / Cover Density style based on term frequency)\n2. **`ts_rank_cd`** (Cover Density ranking, which also considers the proximity of the queried terms to each other within the document)\n\nThese functions take into account lexical, proximity, and structural information—such as how often query terms appear, how close together they are, and the importance of the document sections where they occur."
+    },
+    {
+      "id": "url_focus-06",
+      "bucket": "url_focus",
+      "query": "Which index types and distance operators does this extension support? https://github.com/pgvector/pgvector",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 907,
+      "totalMs": 1634,
+      "promptTokens": 3440,
+      "completionTokens": 313,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 8,
+        "claims_supported": 8,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately lists the index types and distance operators supported by pgvector, covering all reference facts and including additional supported operators found in the provided documentation."
+      },
+      "answer": "The `pgvector` extension supports the following index types and distance operators/functions:\n\n### Supported Index Types\n* **HNSW (Hierarchical Navigable Small World):** Creates a multilayer graph offering better query performance (speed-recall tradeoff) with faster search times, though it has slower build times and uses more memory. It does not require a training step.\n* **IVFFlat (Inverted File with Flat Quantization):** Splits vectors into lists using a training step before indexing.\n\n### Supported Distance Operators & Functions\n* **L2 distance** (Euclidean distance)\n* **Inner product**\n* **Cosine distance**\n* **L1 distance**\n* **Hamming distance**\n* **Jaccard distance**"
+    },
+    {
+      "id": "url_focus-07",
+      "bucket": "url_focus",
+      "query": "How do I define error-handling middleware according to this guide? https://expressjs.com/en/guide/error-handling.html",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 950,
+      "totalMs": 1742,
+      "promptTokens": 2908,
+      "completionTokens": 373,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the four-argument signature and the requirement to define the middleware last, both of which are supported by the provided sources."
+      },
+      "answer": "According to the Express.js guide, you define error-handling middleware functions in the same way as other middleware functions, except error-handling functions take **four arguments** instead of three: `(err, req, res, next)`. \n\nFor example:\n\n```javascript\napp.use((err, req, res, next) => {\n  console.error(err.stack);\n  res.status(500).send('Something broke!');\n});\n```\n\nOr with TypeScript:\n\n```typescript\nimport { type Request, type Response, type NextFunction } from 'express';\n\napp.use((err: Error, req: Request, res: Response, next: NextFunction) => {\n  console.error(err.stack);\n  res.status(500).send('Something broke!');\n});\n```\n\nAdditionally, you should define error-handling middleware **last**, after other `app.use()` calls and route definitions."
+    },
+    {
+      "id": "url_focus-08",
+      "bucket": "url_focus",
+      "query": "What happens if maxsize is None for lru_cache? https://docs.python.org/3/library/functools.html",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 880,
+      "totalMs": 1443,
+      "promptTokens": 3755,
+      "completionTokens": 223,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately reflects the documentation regarding the behavior of lru_cache when maxsize is set to None."
+      },
+      "answer": "According to the Python documentation for `functools.lru_cache`, if `maxsize` is set to `None`, the LRU (Least Recently Used) feature is disabled, and the cache is allowed to grow without bound. This is often useful for implementing dynamic programming algorithms (such as calculating Fibonacci numbers) where all intermediate results need to be kept in memory without eviction."
+    },
+    {
+      "id": "url_focus-09",
+      "bucket": "url_focus",
+      "query": "What status code does this RFC define for rate limiting and which header can accompany it? https://datatracker.ietf.org/doc/html/rfc6585",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 905,
+      "totalMs": 1344,
+      "promptTokens": 3038,
+      "completionTokens": 204,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies the 429 status code and the Retry-After header as defined in RFC 6585."
+      },
+      "answer": "RFC 6585 defines the **429 Too Many Requests** status code for rate limiting. This response can be accompanied by the **Retry-After** header, which indicates how long the user should wait before making a new request."
+    },
+    {
+      "id": "url_focus-10",
+      "bucket": "url_focus",
+      "query": "What are the free parameters of this ranking function and their usual values? https://en.wikipedia.org/wiki/Okapi_BM25",
+      "correctness": 1,
+      "faithfulness": 0,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 851,
+      "totalMs": 1904,
+      "promptTokens": 2840,
+      "completionTokens": 370,
+      "sourceCount": 8,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 0,
+        "handled_false_premise": null,
+        "rationale": "The assistant correctly identified the parameters and their typical values, but this information was not present in the provided source text."
+      },
+      "answer": "The Okapi BM25 ranking function typically includes the following free parameters:\n\n1. **$k_1$**: This parameter controls the term frequency saturation non-linear scaling. \n   - **Usual values:** Typically chosen within the range of $[1.2, 2.0]$, though it is often tuned depending on the collection (e.g., $1.2$ or $0.75$ to $1.2$ in many standard applications).\n   \n2. **$b$**: This parameter controls the degree of document length normalization (where $b = 1$ fully scales term frequency by the document length relative to the average, and $b = 0$ applies no length normalization).\n   - **Usual values:** Frequently set to $0.75$.\n\n3. **$k_3$** (sometimes used for query term frequency): Controls term frequency scaling for terms inside the query itself.\n   - **Usual values:** Can range widely (from $0$ to $1000$ or more), often set to $0$ if query term frequencies are ignored or 8 if tuning is needed."
+    },
+    {
+      "id": "url_focus-11",
+      "bucket": "url_focus",
+      "query": "Which environment variables get exposed to client code? https://vite.dev/guide/env-and-mode",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 931,
+      "totalMs": 1599,
+      "promptTokens": 3004,
+      "completionTokens": 294,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the VITE_ prefix requirement and the import.meta.env access method, both of which are supported by the provided sources."
+      },
+      "answer": "In Vite, only environment variables prefixed with `VITE_` are exposed to your client-side source code (accessible via `import.meta.env`). \n\nThis mechanism is designed to prevent accidentally leaking sensitive credentials—such as secret database passwords or API keys—to the client. For example, if your `.env` file contains:\n\n```env\nVITE_SOME_KEY=123\nDB_PASSWORD=foobar\n```\n\nOnly `VITE_SOME_KEY` will be exposed as `import.meta.env.VITE_SOME_KEY` in your client code, while `DB_PASSWORD` will remain secure and inaccessible on the client side."
+    },
+    {
+      "id": "url_focus-12",
+      "bucket": "url_focus",
+      "query": "How does dark mode work by default and how can it be toggled manually? https://tailwindcss.com/docs/dark-mode",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1248,
+      "totalMs": 1968,
+      "promptTokens": 2006,
+      "completionTokens": 289,
+      "sourceCount": 5,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately explains the default behavior using the prefers-color-scheme media query, the use of the dark: variant, and how to override it using class or selector strategies."
+      },
+      "answer": "By default, Tailwind CSS handles dark mode using the operating system's preference through the `prefers-color-scheme` CSS media feature. When dark mode is enabled at the OS level, any classes prefixed with `dark:` (for example, `dark:bg-black`) will automatically take effect.\n\nTo support toggling dark mode manually rather than relying strictly on the operating system preference, you can configure Tailwind to use a manual strategy (such as the `selector` strategy in newer versions or the `class` strategy in v2/v3). This allows you to add or remove a `dark` class (or attribute) on an ancestor element (like the `<html>` or `<body>` tag) via JavaScript to switch themes manually."
+    },
+    {
+      "id": "url_focus-13",
+      "bucket": "url_focus",
+      "query": "What is the shortest interval for scheduled workflows, and which time zone do they use? https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 913,
+      "totalMs": 1251,
+      "promptTokens": 2468,
+      "completionTokens": 178,
+      "sourceCount": 7,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the shortest interval and the default time zone as stated in the provided sources."
+      },
+      "answer": "The shortest interval you can run scheduled GitHub Actions workflows is **once every 5 minutes**. \n\nBy default, scheduled workflows run in **UTC** (Coordinated Universal Time). However, you can optionally specify a custom time zone using an IANA time zone string for timezone-aware scheduling."
+    },
+    {
+      "id": "url_focus-14",
+      "bucket": "url_focus",
+      "query": "What value formats does this header accept? https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 847,
+      "totalMs": 1579,
+      "promptTokens": 3052,
+      "completionTokens": 310,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies both the HTTP date and the delay in seconds as the valid formats for the Retry-After header."
+      },
+      "answer": "The `Retry-After` HTTP header accepts two types of value formats:\n\n1. **An HTTP-date**: A specific date and time (in HTTP date format) after which the user agent can retry the request. For example: `Retry-After: Wed, 21 Oct 2015 07:28:00 GMT`\n2. **A delay in seconds**: A non-negative decimal integer representing the number of seconds the user agent should wait before making a new request. For example: `Retry-After: 120`"
+    },
+    {
+      "id": "url_focus-15",
+      "bucket": "url_focus",
+      "query": "When does the cleanup function run? https://react.dev/reference/react/useEffect",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1058,
+      "totalMs": 1993,
+      "promptTokens": 1393,
+      "completionTokens": 312,
+      "sourceCount": 2,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer correctly identifies all three scenarios for when the cleanup function runs as specified in the provided documentation."
+      },
+      "answer": "Based on the official React documentation, the `useEffect` cleanup function runs in the following scenarios:\n\n1. **Before every re-render with changed dependencies:** React runs the cleanup function with the old values before running the setup function with the new values.\n2. **When the component unmounts:** After the component is removed from the DOM, React runs the cleanup function.\n3. **During development (Strict Mode):** React runs an extra development-only setup and cleanup cycle immediately after the component mounts to help find bugs and ensure cleanup logic is symmetrical."
+    },
+    {
+      "id": "url_focus-16",
+      "bucket": "url_focus",
+      "query": "What does this statistic measure and what does a value of 0 mean? https://en.wikipedia.org/wiki/Cohen%27s_kappa",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1060,
+      "totalMs": 1770,
+      "promptTokens": 2614,
+      "completionTokens": 273,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately defines Cohen's kappa as a measure of inter-rater reliability for categorical data corrected for chance and correctly explains that a value of 0 indicates agreement no better than chance."
+      },
+      "answer": "Cohen's kappa coefficient is a statistic used to measure **inter-rater reliability** (or the level of agreement) between two or more raters who classify items into qualitative or categorical categories. It is considered more robust than a simple percent agreement calculation because it takes into account the likelihood of agreement occurring purely by chance.\n\nA value of **0** means that the agreement between the raters is no better than what would be expected by random chance alone."
+    },
+    {
+      "id": "url_focus-17",
+      "bucket": "url_focus",
+      "query": "What is this project and what kinds of checks does it support? https://github.com/louislam/uptime-kuma",
+      "correctness": 1,
+      "faithfulness": 0.9,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1015,
+      "totalMs": 2160,
+      "promptTokens": 3648,
+      "completionTokens": 407,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 10,
+        "claims_supported": 9,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the tool and its notification capabilities, and most check types are supported by the provided sources, though DNS monitoring is not explicitly mentioned in the source text."
+      },
+      "answer": "**Uptime Kuma** (`louislam/uptime-kuma`) is a popular, self-hosted monitoring tool featuring a modern, reactive user interface (built with Vue 3, Vite, and Tailwind/Bootstrap styling). It functions similarly to hosted uptime monitoring services like Uptime Robot, allowing you to track the availability and performance of your services and receive notifications through various channels (like Telegram, Discord, Webhooks, etc.).\n\nBased on its features, issue discussions, and configuration types, Uptime Kuma supports a variety of checks, including:\n* **HTTP(s) / Website Monitoring:** Checks availability, status codes, response times, keywords, and certificate expiration.\n* **TCP Port Monitoring:** Checks if a specific TCP port is open and responding.\n* **Ping / ICMP:** Measures network latency and availability via standard ping.\n* **DNS Records:** Monitors DNS resolution.\n* **Push Monitors:** Waits for an explicit ping/heartbeat from a client or cron job (useful for backup or scheduled tasks).\n* **SSL/TLS Certificate Tracking:** Tracks certificate expiration dates."
+    },
+    {
+      "id": "url_focus-18",
+      "bucket": "url_focus",
+      "query": "What is this tool for? https://docs.docker.com/compose/",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 824,
+      "totalMs": 1370,
+      "promptTokens": 2867,
+      "completionTokens": 232,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies the purpose of Docker Compose and mentions the use of a YAML file, both of which are supported by the provided sources."
+      },
+      "answer": "Docker Compose is a tool designed for defining and running multi-container applications. It streamlines the development and deployment experience by allowing you to manage your entire application stack—including services, networks, and volumes—using a single YAML configuration file. \n\nWith Docker Compose, you can document and configure all of your application's service dependencies (such as databases, caches, queues, and web APIs) and create and start all those containers together using a single command (`docker compose up`). It works across various environments, including development, testing, staging, production, and CI workflows."
+    },
+    {
+      "id": "url_focus-19",
+      "bucket": "url_focus",
+      "query": "When does this page say a client/server database is a better choice? https://www.sqlite.org/whentouse.html",
+      "correctness": 0.6666666666666666,
+      "faithfulness": 1,
+      "citationValidity": 1,
+      "hasCitation": true,
+      "formatOk": true,
+      "ttftMs": 911,
+      "totalMs": 2004,
+      "promptTokens": 3255,
+      "completionTokens": 438,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately identifies two of the three key facts and includes an additional relevant point from the source, but it fails to mention the 'very large datasets' condition."
+      },
+      "answer": "According to the SQLite documentation on `https://www.sqlite.org/whentouse.html`, a client/server database is usually a better choice in the following situations:\n\n1. **Remote Data / Separated Devices:** When the data is on a separate device from the application. Because SQLite is embedded directly into the application, placing the data on a remote machine forces the high-bandwidth engine-to-disk link to traverse the network, which is suboptimal for performance.\n2. **Many Concurrent Writers:** When there are many threads and/or processes that need to write to the database at the exact same instant and cannot simply queue up to take turns. \n3. **Network Filesystems:** When using network filesystems (on both Unix and Windows) where file locking logic is often buggy and unreliable, which can lead to issues if multiple clients try to modify the same part of the database simultaneously."
+    },
+    {
+      "id": "url_focus-20",
+      "bucket": "url_focus",
+      "query": "What does the mock.calls property contain? https://jestjs.io/docs/mock-functions",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1251,
+      "totalMs": 2047,
+      "promptTokens": 3230,
+      "completionTokens": 331,
+      "sourceCount": 11,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": null,
+        "rationale": "The answer accurately describes the mock.calls property as an array of arguments for each call, supported by the provided documentation."
+      },
+      "answer": "In Jest, the `mock.calls` property contains an array of all the arguments that were passed to the mock function during every call made to it. \n\nEach item in the `mock.calls` array is itself an array representing the arguments passed during a single invocation. For example, if a mock function `f` is called twice—first with `f('arg1', 'arg2')` and then with `f('arg3', 'arg4')`—the `mock.calls` property will look like this:\n\n```javascript\n[\n  ['arg1', 'arg2'],\n  ['arg3', 'arg4'],\n]\n```\n\nThis property is commonly used in assertions to verify how many times a function was called and what specific parameters were passed to it during tests."
+    },
+    {
+      "id": "false_premise-01",
+      "bucket": "false_premise",
+      "query": "Why did Einstein win the Nobel Prize for relativity?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1801,
+      "totalMs": 2849,
+      "promptTokens": 2530,
+      "completionTokens": 610,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 6,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies that Einstein did not win the Nobel Prize for relativity, specifies the actual reason for the award, and provides a well-supported explanation for why relativity was excluded."
+      },
+      "answer": "Contrary to popular belief, Albert Einstein did not win the Nobel Prize for his theory of relativity. \n\nInstead, he was awarded the 1921 Nobel Prize in Physics (which was actually presented to him in 1922) for his \"services to theoretical physics, and especially for his discovery of the law of the photoelectric effect.\" \n\nRelativity was excluded from the prize for a few key reasons:\n1. **Controversy and Skepticism:** At the time, the theories of special and general relativity were still viewed with skepticism and considered by some members of the Nobel Committee to be too philosophical rather than proven physics.\n2. **Lack of Conclusive Experimental Proof:** Many traditional physicists doubted relativity because definitive, universally accepted experimental evidence confirming its predictions (such as the bending of light during a solar eclipse) was still relatively new and fiercely debated. \n\nBy awarding him the prize for the photoelectric effect—which had solid experimental backing—the Nobel Committee was able to honor Einstein's monumental contributions to science while avoiding the ongoing scientific debates surrounding relativity."
+    },
+    {
+      "id": "false_premise-02",
+      "bucket": "false_premise",
+      "query": "In which over did India win the 2023 Cricket World Cup final?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1064,
+      "totalMs": 1496,
+      "promptTokens": 3106,
+      "completionTokens": 300,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 6,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that India did not win the final, thereby addressing the false premise, and provided accurate information about the match result."
+      },
+      "answer": "India did not win the 2023 Cricket World Cup final. Australia won the final by 6 wickets, successfully chasing the target in 43 overs at the Narendra Modi Stadium in Ahmedabad on November 19, 2023."
+    },
+    {
+      "id": "false_premise-03",
+      "bucket": "false_premise",
+      "query": "When did Microsoft acquire Google?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1130,
+      "totalMs": 1641,
+      "promptTokens": 2017,
+      "completionTokens": 245,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified the false premise and provided accurate information supported by the provided sources."
+      },
+      "answer": "Microsoft has never acquired Google. Google is an independent company (now a subsidiary of its parent company, Alphabet Inc.) and was founded by Larry Page and Sergey Brin on September 4, 1998. Microsoft and Google are major competitors in technology, search, cloud computing, and operating systems."
+    },
+    {
+      "id": "false_premise-04",
+      "bucket": "false_premise",
+      "query": "How many moons does the Sun have?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1240,
+      "totalMs": 1793,
+      "promptTokens": 2421,
+      "completionTokens": 223,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that the Sun has no moons and explained the nature of the Sun versus planets, effectively addressing the false premise."
+      },
+      "answer": "The Sun does not have any moons. By definition, moons are natural satellites that orbit planets, dwarf planets, or small solar system bodies, whereas the Sun is a star. Instead of having moons, the Sun is orbited by eight planets, at least five dwarf planets, thousands of asteroids, and trillions of comets and icy bodies."
+    },
+    {
+      "id": "false_premise-05",
+      "bucket": "false_premise",
+      "query": "What did Steve Jobs say when he launched the iPhone 15 in 2023?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 944,
+      "totalMs": 1850,
+      "promptTokens": 2807,
+      "completionTokens": 353,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that Steve Jobs could not have launched the iPhone 15 due to his death in 2011 and provided accurate context regarding the actual launch of the iPhone 15 and the original iPhone."
+      },
+      "answer": "Steve Jobs did not launch the iPhone 15 in 2023, as he passed away in October 2011. The iPhone 15 was launched by Apple executives in September 2023 at the Steve Jobs Theater at Apple Park. \n\nWhen people think of iconic quotes from Steve Jobs regarding the iPhone, they are usually remembering his introduction of the very first iPhone at the Macworld Expo on January 9, 2007. During that keynote, he famously introduced it by saying: \n> “An iPod, a phone, and an internet communicator. An iPod, a phone... are you getting it? These are not three separate devices. This is one device.”"
+    },
+    {
+      "id": "false_premise-06",
+      "bucket": "false_premise",
+      "query": "Who was the first person to walk on Mars?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 980,
+      "totalMs": 1748,
+      "promptTokens": 2464,
+      "completionTokens": 257,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies that no human has walked on Mars, effectively addressing the false premise in the question."
+      },
+      "answer": "As of now, **no human has ever walked on Mars**. \n\nWhile uncrewed spacecraft, orbiters, and rovers (such as NASA's Viking 1, Curiosity, and Perseverance) have successfully explored the Martian surface, crewed missions have not yet taken place. Space agencies like NASA and private companies like SpaceX are actively working toward planning the first human missions to the Red Planet, meaning the first person to walk on Mars is likely alive today and may already be training as an astronaut, engineer, or student."
+    },
+    {
+      "id": "false_premise-07",
+      "bucket": "false_premise",
+      "query": "Why did Meta deprecate React in 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1312,
+      "totalMs": 1979,
+      "promptTokens": 2564,
+      "completionTokens": 417,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 7,
+        "claims_supported": 7,
+        "handled_false_premise": true,
+        "rationale": "The answer correctly identifies the false premise by clarifying that React was not deprecated, though it omits the fact regarding the release of React 19."
+      },
+      "answer": "Meta did not deprecate React itself in 2024; rather, Meta officially deprecated **Create React App (CRA)**. \n\nCreate React App was long used as a standard tool for setting up single-page React applications, but over the years, the web development ecosystem evolved significantly. Modern React applications rely heavily on full-stack frameworks and modern build tools that offer better performance, server-side rendering, routing, and optimized developer experience. \n\nBecause of this shift, Meta and the React team deprecated Create React App and now recommend using robust alternative frameworks and tools—such as Next.js, Remix, Expo (for native apps), or Vite—to build and scale React applications effectively."
+    },
+    {
+      "id": "false_premise-08",
+      "bucket": "false_premise",
+      "query": "What is the GDP of Wakanda?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1207,
+      "totalMs": 2075,
+      "promptTokens": 2051,
+      "completionTokens": 294,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified Wakanda as a fictional country and explained that it has no real GDP, while providing context about its fictional economic status."
+      },
+      "answer": "Because Wakanda is a fictional nation from Marvel Comics, there is no official, canonical Gross Domestic Product (GDP) figure established by Marvel. \n\nHowever, economists and pop-culture analysts have often debated Wakandan economics. Because Wakanda sits on top of the world's only supply of **Vibranium**—a rare, virtually indestructible, and immensely valuable extraterrestrial metal—and possesses hyper-advanced technology, its theoretical GDP would likely make it by far the richest nation on Earth. In the comics and films, Wakanda has maintained a self-sufficient, highly advanced economy with free education and healthcare, shielding its true economic power from the rest of the world until recently."
+    },
+    {
+      "id": "false_premise-09",
+      "bucket": "false_premise",
+      "query": "Which section of the Python 4.0 release notes covers removing the GIL?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1504,
+      "totalMs": 2121,
+      "promptTokens": 2756,
+      "completionTokens": 445,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 6,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies that Python 4.0 has not been released and provides accurate information about the actual progress of GIL removal in Python 3.13 and 3.14."
+      },
+      "answer": "There are no Python 4.0 release notes because Python 4.0 has not been released or planned in that capacity. Instead, the initiative to make the Global Interpreter Lock (GIL) optional—known as free-threading—was introduced via PEP 703. This feature began as an experimental build in Python 3.13 and continues to advance in Python 3.14, allowing CPython to run without the GIL enabled."
+    },
+    {
+      "id": "false_premise-10",
+      "bucket": "false_premise",
+      "query": "When did the Great Wall of China become visible from the Moon with the naked eye?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1296,
+      "totalMs": 1955,
+      "promptTokens": 2400,
+      "completionTokens": 369,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies the premise as a myth and explains that the Great Wall is not visible from the Moon with the naked eye, citing support from NASA and astronauts."
+      },
+      "answer": "The premise of the question is actually based on a popular myth—the Great Wall of China has **never** been visible from the Moon with the naked eye. \n\nAccording to astronauts and space agencies like NASA, human-made structures are far too narrow and small to be seen from such a distance without magnification. While the wall can sometimes be photographed or observed from low Earth orbit using special high-powered lenses or under very specific conditions, it is completely invisible to the naked eye from the Moon or even standard low-Earth orbit. The myth predates human spaceflight and has been repeatedly debunked by astronauts who have traveled into space."
+    },
+    {
+      "id": "false_premise-11",
+      "bucket": "false_premise",
+      "query": "What has Linus Torvalds changed since becoming CEO of Microsoft?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1446,
+      "totalMs": 2090,
+      "promptTokens": 2512,
+      "completionTokens": 431,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 5,
+        "claims_supported": 5,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified the false premise, clarified that Linus Torvalds is not the CEO of Microsoft, and provided the correct information about the actual CEO."
+      },
+      "answer": "Linus Torvalds has never been the CEO of Microsoft. He is best known as the creator of the Linux kernel and the version control system Git. \n\nThe current CEO of Microsoft is Satya Nadella, who took over the role in 2014. Under Nadella's leadership, Microsoft shifted its strategy significantly—moving away from its historical hostility toward open-source software and Linux, embracing cloud computing (Azure), and supporting Linux technologies extensively. Linus Torvalds himself works under the auspices of the Linux Foundation and continues to oversee the development of the Linux kernel."
+    },
+    {
+      "id": "false_premise-12",
+      "bucket": "false_premise",
+      "query": "How did Brazil win Euro 2024?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1790,
+      "totalMs": 2598,
+      "promptTokens": 2533,
+      "completionTokens": 586,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 11,
+        "claims_supported": 11,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly addresses the false premise by explaining Brazil's ineligibility for the tournament, though it omits the fact that Spain won Euro 2024."
+      },
+      "answer": "Brazil did not win Euro 2024 because they are a South American nation (affiliated with CONMEBOL) and are not eligible to participate in the UEFA European Championship, which is exclusively for European national teams. \n\nAround the time of Euro 2024, Brazil did play some high-profile international friendlies against European teams—such as a 1–0 win against England and a 3–3 draw against Spain in March 2024. However, their official tournament competition during that summer was the **Copa América 2024**, where they were ultimately eliminated in the quarterfinals by Uruguay on penalties."
+    },
+    {
+      "id": "false_premise-13",
+      "bucket": "false_premise",
+      "query": "What is Elon Musk's personal phone number?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 975,
+      "totalMs": 1778,
+      "promptTokens": 2459,
+      "completionTokens": 285,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies that the personal phone number is not public, acknowledges the historical context of the accidental leak, and provides appropriate corporate contact alternatives."
+      },
+      "answer": "Elon Musk's personal phone number is not publicly available. While a private number was accidentally leaked on Twitter in the past, it is no longer active for public use, and he has indicated a preference for using X (formerly Twitter) for communication. If you need to reach out to his businesses, you can contact his corporate entities directly, such as the Tesla Toll-Free number at (877) 798-3752 or the SpaceX Starbase Launch Facility at 310-363-6000."
+    },
+    {
+      "id": "false_premise-14",
+      "bucket": "false_premise",
+      "query": "Who won the 2030 FIFA World Cup?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 961,
+      "totalMs": 1889,
+      "promptTokens": 2402,
+      "completionTokens": 345,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that the 2030 World Cup has not yet occurred and provided accurate details regarding the scheduled hosts."
+      },
+      "answer": "The 2030 FIFA World Cup has not taken place yet, so there is currently no winner. The tournament is scheduled to be hosted primarily by Morocco, Portugal, and Spain, with the opening matches taking place in Uruguay, Argentina, and Paraguay to celebrate the tournament's centenary."
+    },
+    {
+      "id": "false_premise-15",
+      "bucket": "false_premise",
+      "query": "Why did Node.js drop JavaScript support in version 20?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 3420,
+      "totalMs": 4109,
+      "promptTokens": 3044,
+      "completionTokens": 954,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 6,
+        "claims_supported": 6,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that the premise was false and explained the actual situation regarding Node.js 20's End-of-Life status."
+      },
+      "answer": "Node.js did not drop JavaScript support in version 20; rather, Node.js version 20 reached its official **End-of-Life (EOL)**. \n\nLike all major Node.js releases, version 20 followed a defined lifecycle consisting of an Active Long Term Support (LTS) period and a Maintenance period before finally becoming unmaintained. When a Node.js version reaches its EOL:\n- It stops receiving critical security patches, bug fixes, and platform updates.\n- Ecosystem dependencies, tools, and cloud providers (such as Vercel, GitHub Actions, and the Azure SDK) progressively drop support for it to prevent security vulnerabilities and ensure compatibility with modern infrastructure.\n\nDevelopers are encouraged to upgrade their applications to an active LTS version (such as Node.js 22 or 24) to keep their projects secure and compatible with modern toolchains."
+    },
+    {
+      "id": "false_premise-16",
+      "bucket": "false_premise",
+      "query": "What is the capital of Africa?",
+      "correctness": 1,
+      "faithfulness": 0.8571428571428571,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 852,
+      "totalMs": 1767,
+      "promptTokens": 2313,
+      "completionTokens": 353,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 7,
+        "claims_supported": 6,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identifies that Africa is a continent without a capital and addresses the false premise, though the claim about Addis Ababa being the 'capital' is an interpretation not explicitly stated in the provided sources."
+      },
+      "answer": "Africa is a continent made up of 54 sovereign countries, so **it does not have a single capital city**. \n\nHowever, when people speak of a central or diplomatic hub for the continent, **Addis Ababa, Ethiopia**, is often considered the \"capital of Africa\" because it serves as the headquarters of the **African Union (AU)**. Additionally, cities like Nairobi, Kenya, serve as major global and regional hubs for international organizations and commerce.\n\nIf you are looking for specific national capitals within the continent:\n* **Cairo, Egypt** is Africa's largest capital city by population and urban footprint.\n* **South Africa** is unique for having three distinct capital cities: **Pretoria** (administrative), **Cape Town** (legislative), and **Bloemfontein** (judicial)."
+    },
+    {
+      "id": "false_premise-17",
+      "bucket": "false_premise",
+      "query": "When was the Eiffel Tower moved to London?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 864,
+      "totalMs": 1759,
+      "promptTokens": 2527,
+      "completionTokens": 325,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that the Eiffel Tower was never moved and remains in Paris, while providing helpful context regarding the false premise."
+      },
+      "answer": "The Eiffel Tower was never moved to London—it remains in Paris, France, where it was built for the 1889 World's Fair. \n\nHowever, your question might be inspired by a couple of historical and internet-related facts:\n1. **Watkin's Tower:** In 1890, after seeing the Eiffel Tower in Paris, British politician Sir Edward Watkin formed a company to build a massive rival iron tower in London (often called London's \"failed Eiffel Tower\"). It was partially constructed at Wembley Park before being abandoned and eventually torn down.\n2. **Internet Rumors/Humor:** There are occasional jokes, memes, and satirical posts on social media (such as Facebook groups or TikTok) joking about the Eiffel Tower being moved to places like Scotland or London, but these are entirely fictional."
+    },
+    {
+      "id": "false_premise-18",
+      "bucket": "false_premise",
+      "query": "What was the score in the cricket final at the Paris 2024 Olympics?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1668,
+      "totalMs": 2181,
+      "promptTokens": 3167,
+      "completionTokens": 435,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          false
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 3,
+        "claims_supported": 3,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that cricket was not part of the Paris 2024 Olympics and provided accurate historical context regarding the 1900 Olympics, though it missed the specific fact about the 2028 return."
+      },
+      "answer": "Cricket was not included in the sports program for the Paris 2024 Olympic Games. \n\nThe only time cricket has ever been played at the Summer Olympics was at the 1900 Paris Olympics. In that historical 1900 final between Great Britain and France, Great Britain won by 158 runs."
+    },
+    {
+      "id": "false_premise-19",
+      "bucket": "false_premise",
+      "query": "Which 2025 Nobel Prize did Taylor Swift win?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 900,
+      "totalMs": 1430,
+      "promptTokens": 3001,
+      "completionTokens": 205,
+      "sourceCount": 10,
+      "verdict": {
+        "key_facts_covered": [
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 2,
+        "claims_supported": 2,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that Taylor Swift did not win a Nobel Prize and addressed the false rumor regarding her nomination."
+      },
+      "answer": "Taylor Swift did not win a Nobel Prize in 2025. A rumor circulated online claiming that she was nominated for the Nobel Peace Prize by Pope Leo XIV, but this claim is entirely false."
+    },
+    {
+      "id": "false_premise-20",
+      "bucket": "false_premise",
+      "query": "How many bones are in a shark's skeleton?",
+      "correctness": 1,
+      "faithfulness": 1,
+      "citationValidity": null,
+      "hasCitation": false,
+      "formatOk": true,
+      "ttftMs": 1129,
+      "totalMs": 1827,
+      "promptTokens": 2234,
+      "completionTokens": 335,
+      "sourceCount": 9,
+      "verdict": {
+        "key_facts_covered": [
+          true,
+          true
+        ],
+        "contradicts_key_facts": false,
+        "claims_total": 4,
+        "claims_supported": 4,
+        "handled_false_premise": true,
+        "rationale": "The assistant correctly identified that sharks have no bones and are made of cartilage, while also addressing the false premise by explaining the structure of their skeleton."
+      },
+      "answer": "Sharks do not have any bones at all! Their skeletons are made entirely of cartilage, which is the same flexible, rubbery material found in human ears and noses. \n\nWhile they lack bones, a shark's skeleton typically consists of **200 to 400 structures** made of cartilage (including the skull, spine, and fins), with the exact number varying depending on the species. Parts of their skeleton, such as their jaws and the cartilage around their brain, can be strengthened by calcium salts to make them harder and stronger over time, but they still remain cartilage rather than true bone."
+    }
+  ]
+}

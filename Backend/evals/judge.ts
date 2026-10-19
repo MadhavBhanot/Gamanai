@@ -7,7 +7,8 @@ import type { EvalCase } from "./metrics";
 
 // A different model (and quota) from the answerer. Same family as a Gemini answerer, so self-preference
 // bias is possible: the human-label calibration (calibrate.ts) is the check on that.
-export const JUDGE = resolveModel(process.env.JUDGE_MODEL ?? "google:gemini-3.6-flash");
+// gemini-3.6-flash would be stronger but its free tier allows only 20 requests/day; Flash-Lite quotas fit a 100-case run.
+export const JUDGE = resolveModel(process.env.JUDGE_MODEL ?? "google:gemini-3.1-flash-lite");
 
 const verdictSchema = z.object({
   key_facts_covered: z.array(z.boolean()),
@@ -58,10 +59,10 @@ export async function judgeAnswer(
         maxOutputTokens: 2000,
         maxRetries: 0, // the eval runner owns rate-limit retries and pacing
         abortSignal: AbortSignal.timeout(90_000),
-        // A little reasoning makes claim-by-claim grading more careful
+        // Extra reasoning makes claim-by-claim grading more careful (and offsets a Lite judge)
         providerOptions: JUDGE.provider === "groq"
           ? { groq: { reasoningEffort: "low" } }
-          : { google: { thinkingConfig: { thinkingLevel: "low" as const } } },
+          : { google: { thinkingConfig: { thinkingLevel: "medium" as const } } },
       });
       if (output.key_facts_covered.length !== testCase.key_facts.length) {
         throw new Error(`judge returned ${output.key_facts_covered.length} facts, expected ${testCase.key_facts.length}`);
