@@ -1,0 +1,34 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gaminai-badge-fill" x1="38" y1="24" x2="202" y2="228" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE36D" />
+      <stop offset="0.52" stop-color="#FFC928" />
+      <stop offset="1" stop-color="#F5A300" />
+    </linearGradient>
+    <linearGradient id="gaminai-badge-core" x1="92" y1="70" x2="159" y2="192" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF3A7" />
+      <stop offset="1" stop-color="#FFD85A" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M127 10L148 73L208 28L183 96L248 120L184 145L230 208L162 178L138 246L112 180L47 224L74 159L10 153L67 113L28 51L97 82L127 10Z"
+    fill="url(#gaminai-badge-fill)"
+    stroke="#E6A700"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="10"
+  />
+  <path
+    d="M128 37L145 87L188 61L170 108L214 124L167 146L196 188L151 167L134 214L116 170L72 197L88 154L43 146L86 119L61 78L108 95L128 37Z"
+    fill="url(#gaminai-badge-core)"
+    opacity="0.42"
+  />
+  <path
+    d="M117 52L126 101M126 101L154 71M126 101L154 141M126 101L94 148M126 101L97 74"
+    opacity="0.35"
+    stroke="#FFF8C7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="10"
+  />
+</svg>
