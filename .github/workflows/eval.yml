@@ -1,0 +1,43 @@
+name: Eval gate
+
+# Runs a 20-question smoke eval (5 per bucket) on PRs that touch the answer pipeline,
+# on cached search results, and fails if correctness or faithfulness drops >5 pts vs the baseline.
+on:
+  pull_request:
+    paths:
+      - "Backend/llm/**"
+      - "Backend/retrieval/**"
+      - "Backend/prompt.ts"
+      - "Backend/config.ts"
+      - "Backend/evals/**"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: Backend
+    env:
+      Groq_API_Key: ${{ secrets.GROQ_API_KEY }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+      - run: npm run eval -- --per-bucket 5 --label ci-smoke
+      - name: Compare against baseline
+        run: npx ts-node evals/compare.ts "$(ls evals/results/*_baseline.json | tail -1)" "$(ls -t evals/results/*_ci-smoke.json | head -1)" --max-drop 0.05
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: Backend/evals/results/*_ci-smoke.json

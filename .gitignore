@@ -12,3 +12,4 @@ Preqz/
 
 # docs stay local
 *.md
+.claude/
