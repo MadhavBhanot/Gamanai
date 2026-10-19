@@ -1,11 +1,12 @@
-import Groq from "groq-sdk";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 import { truncateText } from "../lib/text";
+import { providerOptionsFor, resolveModel } from "../llm/providers";
 import type { WebSearchResult } from "../retrieval/search";
 import type { EvalCase } from "./metrics";
 
-// Different model family from the answerer (Qwen) to reduce self-preference bias.
-export const JUDGE_MODEL = process.env.JUDGE_MODEL ?? "openai/gpt-oss-120b";
+// Ideally a different model family from the answerer, to reduce self-preference bias.
+export const JUDGE = resolveModel(process.env.JUDGE_MODEL ?? "groq:openai/gpt-oss-120b");
 
 const verdictSchema = z.object({
   key_facts_covered: z.array(z.boolean()),
@@ -31,12 +32,11 @@ Produce:
 - "rationale": one short sentence.`;
 
 export async function judgeAnswer(
-  client: Groq,
   testCase: EvalCase,
   sources: WebSearchResult[],
   answer: string,
 ): Promise<Verdict> {
-  const userContent = JSON.stringify({
+  const prompt = JSON.stringify({
     QUESTION: testCase.query,
     FALSE_PREMISE: testCase.should_refuse,
     REFERENCE_KEY_FACTS: testCase.key_facts,
@@ -47,26 +47,26 @@ export async function judgeAnswer(
 
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const completion = await client.chat.completions.create({
-      model: JUDGE_MODEL,
-      messages: [
-        { role: "system", content: JUDGE_PROMPT },
-        { role: "user", content: userContent },
-      ],
-      response_format: { type: "json_object" },
-      reasoning_effort: "low",
-      temperature: 0,
-      max_completion_tokens: 2000,
-    });
-
     try {
-      const verdict = verdictSchema.parse(JSON.parse(completion.choices[0]?.message?.content ?? ""));
-      if (verdict.key_facts_covered.length !== testCase.key_facts.length) {
-        throw new Error(`judge returned ${verdict.key_facts_covered.length} facts, expected ${testCase.key_facts.length}`);
+      const { output } = await generateText({
+        model: JUDGE.model,
+        system: JUDGE_PROMPT,
+        prompt,
+        output: Output.object({ schema: verdictSchema }),
+        temperature: 0,
+        maxOutputTokens: 2000,
+        maxRetries: 0, // the eval runner owns rate-limit retries and pacing
+        abortSignal: AbortSignal.timeout(90_000),
+        providerOptions: JUDGE.provider === "groq" ? { groq: { reasoningEffort: "low" } } : providerOptionsFor(JUDGE),
+      });
+      if (output.key_facts_covered.length !== testCase.key_facts.length) {
+        throw new Error(`judge returned ${output.key_facts_covered.length} facts, expected ${testCase.key_facts.length}`);
       }
-      verdict.claims_supported = Math.min(verdict.claims_supported, verdict.claims_total);
-      return verdict;
+      output.claims_supported = Math.min(output.claims_supported, output.claims_total);
+      return output;
     } catch (error) {
+      // Rate limits go back to the runner's retry loop; only malformed verdicts are retried here
+      if ((error as { statusCode?: number }).statusCode === 429) throw error;
       lastError = error;
     }
   }

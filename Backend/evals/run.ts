@@ -14,12 +14,11 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import Groq from "groq-sdk";
-import { CHAT_MODEL } from "../config";
 import { generateAnswer, prepareAnswer } from "../llm/answer";
+import { ANSWER_CHAIN, resolveModel, type ModelRef } from "../llm/providers";
 import { withTimeout } from "../lib/timeout";
 import { getWebSearchResults } from "../retrieval/search";
-import { JUDGE_MODEL, judgeAnswer } from "./judge";
+import { JUDGE, judgeAnswer } from "./judge";
 import { estimateTokens, parseRetryDelayMs, TokenPacer } from "./pacer";
 import {
   citationValidity,
@@ -44,18 +43,36 @@ const { values: args } = parseArgs({
     "per-bucket": { type: "string" },
     concurrency: { type: "string", default: "2" },
     fresh: { type: "boolean", default: false },
+    model: { type: "string" }, // provider:model to evaluate; defaults to the app's primary model
   },
 });
 
-// maxRetries 0: we retry 429s ourselves so latency is measured per attempt, not including backoff.
-const client = new Groq({ apiKey: process.env.Groq_API_Key ?? "", maxRetries: 0, timeout: 120_000 });
+// One fixed model per run (no fallback), so the numbers describe a single model.
+const ANSWER = args.model ? resolveModel(args.model) : ANSWER_CHAIN[0];
 
-// Groq free tier: 8k tokens/min per model. Budget 90% of it so bursts don't trip 429s.
-const TPM_BUDGET = Number(process.env.EVAL_TPM ?? 8000) * 0.9;
-const answerPacer = new TokenPacer(TPM_BUDGET);
-const judgePacer = JUDGE_MODEL === CHAT_MODEL ? answerPacer : new TokenPacer(TPM_BUDGET);
-const ANSWER_MAX_TOKENS = 1500; // matches generateAnswer's max_completion_tokens
-const JUDGE_MAX_TOKENS = 2000; // matches judgeAnswer's max_completion_tokens
+// Free-tier limits per model (90% budgeted so bursts don't trip 429s). Override with EVAL_<PROVIDER>_TPM / _RPM.
+const FREE_TIER_LIMITS = { groq: { tpm: 8000, rpm: 30 }, google: { tpm: 250_000, rpm: 10 } } as const;
+const pacers = new Map<string, { tokens: TokenPacer; requests: TokenPacer }>();
+function pacerFor(ref: ModelRef) {
+  let pacer = pacers.get(ref.label);
+  if (!pacer) {
+    const env = (key: string) => Number(process.env[`EVAL_${ref.provider.toUpperCase()}_${key}`]);
+    const limits = FREE_TIER_LIMITS[ref.provider];
+    pacer = {
+      tokens: new TokenPacer((env("TPM") || limits.tpm) * 0.9),
+      requests: new TokenPacer((env("RPM") || limits.rpm) * 0.9),
+    };
+    pacers.set(ref.label, pacer);
+  }
+  return pacer;
+}
+async function paced(ref: ModelRef, tokens: number) {
+  const pacer = pacerFor(ref);
+  await pacer.requests.take(1);
+  await pacer.tokens.take(tokens);
+}
+const ANSWER_MAX_TOKENS = 1500; // matches generateAnswer's maxOutputTokens
+const JUDGE_MAX_TOKENS = 2000; // matches judgeAnswer's maxOutputTokens
 
 // Covers pacer waits too, so generous; a hang becomes an error item instead of stalling the run.
 const CASE_TIMEOUT_MS = 6 * 60_000;
@@ -70,13 +87,13 @@ async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
     try {
       return await fn();
     } catch (error) {
-      const status = (error as { status?: number }).status;
-      if (status !== 429 || attempt >= 15) throw error;
-      const message = String((error as Error).message);
-      const waitMs =
-        parseRetryDelayMs(message) ??
-        Number((error as { headers?: Headers }).headers?.get?.("retry-after") || 10) * 1000;
-      if (/per day|\(TPD\)|\(RPD\)/i.test(message) && waitMs > 15 * 60_000) {
+      // AI SDK APICallError: statusCode + responseBody (Gemini puts retryDelay and quota ids in the body)
+      const e = error as { statusCode?: number; responseBody?: string; responseHeaders?: Record<string, string>; message?: string };
+      if (e.statusCode !== 429 || attempt >= 15) throw error;
+      const message = `${e.message ?? ""} ${e.responseBody ?? ""}`;
+      const waitMs = parseRetryDelayMs(message) ?? Number(e.responseHeaders?.["retry-after"] || 10) * 1000;
+      const daily = /per day|\(TPD\)|\(RPD\)|PerDay/i.test(message);
+      if (daily && waitMs > 15 * 60_000) {
         throw new DailyQuotaError(`Daily quota spent; resume in ~${Math.ceil(waitMs / 60_000)} min. ${message.slice(0, 160)}`);
       }
       await sleep(waitMs + Math.random() * 1000);
@@ -115,16 +132,16 @@ async function evaluate(testCase: EvalCase) {
   const prepared = await prepareAnswer(testCase.query, [], cachedSearch);
   const answerEstimate = estimateTokens(JSON.stringify(prepared.messages)) + ANSWER_MAX_TOKENS;
   const answer = await withRateLimitRetry(async () => {
-    await answerPacer.take(answerEstimate);
-    return generateAnswer(prepared.messages, undefined, client);
+    await paced(ANSWER, answerEstimate);
+    return generateAnswer(prepared.messages, undefined, { chain: [ANSWER], maxRetries: 0 });
   });
   const parsed = parseAnswerSections(answer.content);
   // Judge input ≈ instructions + snippets (600 chars each) + answer
   const judgeEstimate =
     estimateTokens(parsed.answer) + prepared.results.length * 180 + 600 + JUDGE_MAX_TOKENS;
   const verdict = await withRateLimitRetry(async () => {
-    await judgePacer.take(judgeEstimate);
-    return judgeAnswer(client, testCase, prepared.results, parsed.answer);
+    await paced(JUDGE, judgeEstimate);
+    return judgeAnswer(testCase, prepared.results, parsed.answer);
   });
 
   const factCoverage = verdict.key_facts_covered.filter(Boolean).length / testCase.key_facts.length;
@@ -216,7 +233,7 @@ async function main() {
   );
   if (finished.size) console.log(`Resuming: ${finished.size} cases already done in ${path.basename(checkpointFile)}`);
 
-  console.log(`Evaluating ${cases.length} cases with ${CHAT_MODEL}, judged by ${JUDGE_MODEL}`);
+  console.log(`Evaluating ${cases.length} cases with ${ANSWER.label}, judged by ${JUDGE.label}`);
 
   await Promise.all(
     Array.from({ length: concurrency }, async () => {
@@ -267,7 +284,7 @@ Stopped early: ${stopped.message}`);
   };
 
   const date = new Date().toISOString();
-  const meta = { label: args.label, date, model: CHAT_MODEL, judgeModel: JUDGE_MODEL, git: gitSha(), freshSearch: args.fresh };
+  const meta = { label: args.label, date, model: ANSWER.label, judgeModel: JUDGE.label, git: gitSha(), freshSearch: args.fresh };
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
   const outFile = path.join(RESULTS_DIR, `${date.slice(0, 19).replace(/[:T]/g, "-")}_${args.label}.json`);
   fs.writeFileSync(outFile, JSON.stringify({ meta, summary, items }, null, 2));

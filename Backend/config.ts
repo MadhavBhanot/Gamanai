@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { tavily } from "@tavily/core";
-import Groq from "groq-sdk";
 
 export const port = Number(process.env.PORT ?? 8000);
 
@@ -26,10 +25,4 @@ export const tavly = tavily({
   apiKey: process.env.TAVILY_API_KEY ?? "",
 });
 
-export const groq = new Groq({
-  apiKey: process.env.Groq_API_Key ?? "",
-  timeout: 60_000,
-});
-
-// Groq retires models often; override with CHAT_MODEL without a redeploy of code.
-export const CHAT_MODEL = process.env.CHAT_MODEL ?? "qwen/qwen3.8-27b";
+// LLM models are configured in llm/providers.ts (ANSWER_MODELS fallback chain).

@@ -42,6 +42,9 @@ export const estimateTokens = (text: string) => Math.ceil(text.length / 3.5);
 
 /** Groq puts the wait in the error text ("Please try again in 19m16.464s") and often sends no retry-after header. */
 export function parseRetryDelayMs(message: string) {
+  // Gemini: "retryDelay": "17s" in the error body
+  const gemini = message.match(/"retryDelay":\s*"([\d.]+)s"/)?.[1];
+  if (gemini) return Number(gemini) * 1000;
   const match = message.match(/try again in ((?:\d+h)?(?:\d+m(?!s))?(?:[\d.]+s)?(?:[\d.]+ms)?)/i)?.[1];
   if (!match) return null;
   const part = (pattern: RegExp) => Number(match.match(pattern)?.[1] ?? 0);

@@ -8,6 +8,7 @@
     "eval": "ts-node --transpile-only evals/run.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.135",
     "@ai-sdk/groq": "^3.0.35",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -18,7 +19,6 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.4.1",
-    "groq-sdk": "^1.1.2",
     "helmet": "^8.1.0",
     "pg": "^8.20.0",
     "zod": "^4.4.1"

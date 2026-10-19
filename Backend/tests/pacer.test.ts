@@ -50,6 +50,7 @@ describe("parseRetryDelayMs", () => {
     expect(parseRetryDelayMs("try again in 1h2m3s")).toBe(3_723_000);
     expect(parseRetryDelayMs("try again in 577ms")).toBe(577);
     expect(parseRetryDelayMs("try again in 7.5s")).toBe(7_500);
+    expect(parseRetryDelayMs('{"@type":"RetryInfo","retryDelay": "17s"}')).toBe(17_000);
     expect(parseRetryDelayMs("no hint here")).toBeNull();
   });
 });

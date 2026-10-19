@@ -1,6 +1,7 @@
-import { CHAT_MODEL, groq } from "../config";
+import { generateText } from "ai";
 import { CONTEXT_SUMMARY_PROMPT } from "../prompt";
 import { truncateText } from "../lib/text";
+import { ANSWER_CHAIN, providerOptionsFor } from "./providers";
 import type { ChatMessage } from "./stream";
 
 // ponytail: not wired into /follow_up yet (it only sends the last 5 user queries).
@@ -70,17 +71,15 @@ export async function generateContextSummary(history: ChatMessage[]): Promise<st
   );
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: CHAT_MODEL,
-      messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 500,
-      stream: false,
+    const ref = ANSWER_CHAIN[0];
+    const { text } = await generateText({
+      model: ref.model,
+      prompt,
+      maxOutputTokens: 500,
+      providerOptions: providerOptionsFor(ref),
     });
 
-    return (
-      completion.choices[0]?.message?.content?.trim() ??
-      "No context summary available."
-    );
+    return text.trim() || "No context summary available.";
   } catch (error) {
     console.error("Context summary generation failed", error);
     return buildFallbackContextSummary(history);
