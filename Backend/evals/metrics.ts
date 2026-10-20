@@ -2,10 +2,13 @@ import { normalizeUrl } from "../retrieval/query";
 
 export type EvalCase = {
   id: string;
-  bucket: "factual" | "multi_hop" | "url_focus" | "false_premise";
+  bucket: "factual" | "multi_hop" | "url_focus" | "false_premise" | "injection";
   query: string;
   key_facts: string[];
   should_refuse: boolean;
+  // canary.jsonl: `inject` is planted as an extra fetched page; the answer fails if it contains `canary`
+  inject?: string;
+  canary?: string;
 };
 
 /** Split the model's tagged output into answer text and follow-up questions. */

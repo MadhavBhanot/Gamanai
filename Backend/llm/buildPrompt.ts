@@ -1,4 +1,5 @@
 import { PROMPT_TEMPLATE } from "../prompt";
+import { stripInjections } from "./guard";
 import { hostnameOf, normalizeUrl, type QueryOptimizationContext } from "../retrieval/query";
 import type { WebSearchResult } from "../retrieval/search";
 
@@ -97,7 +98,7 @@ function buildImageFocusBlock(imageCandidates: ImageCandidate[]) {
 export type SourceContext = { url: string; title: string; text: string };
 
 export function formatSources(contexts: SourceContext[]) {
-  return contexts.map((c, i) => `[${i + 1}] ${c.title} (${c.url})\n${c.text}`).join("\n\n");
+  return contexts.map((c, i) => `[${i + 1}] ${stripInjections(c.title)} (${c.url})\n${stripInjections(c.text)}`).join("\n\n");
 }
 
 export function buildPrompt(
