@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { truncateText } from "../lib/text";
 import { SYSTEM_PROMPT } from "../prompt";
 import { indexPages, retrieveChunks, type RetrievalMode } from "../retrieval/hybrid";
+import { liveImageUrls } from "../retrieval/images";
 import { getWebSearchResults, type WebSearchResult } from "../retrieval/search";
 import { buildPrompt, type SourceContext } from "./buildPrompt";
 import { ANSWER_CHAIN, providerOptionsFor, type ModelRef } from "./providers";
@@ -55,22 +56,27 @@ export async function prepareAnswer(
   const retrievalStartedAt = performance.now();
   const { contexts, mode: usedMode } = await buildContexts(query, search.results, mode);
   const retrievalMs = performance.now() - retrievalStartedAt;
-  const messages = answerMessages(search, contexts, history);
+  const messages = await answerMessages(search, contexts, history);
   return { ...search, contexts, contextMode: usedMode, retrievalMs, messages };
 }
 
 export type PreparedAnswer = Awaited<ReturnType<typeof prepareAnswer>>;
 
 /** The answer model's input: system prompt, history, then the numbered sources and the query. */
-export function answerMessages(
+export async function answerMessages(
   search: Awaited<ReturnType<typeof getWebSearchResults>>,
   contexts: SourceContext[],
   history: ChatMessage[] = [],
-): ChatMessage[] {
+): Promise<ChatMessage[]> {
+  // Dead image links rendered as broken images; only offer the model images that load right now
+  const imageUrls = [...search.results.flatMap((r) => r.images ?? []), ...search.images];
+  const live = new Set(imageUrls.length ? await liveImageUrls(imageUrls) : []);
+  const results = search.results.map((r) => (r.images?.length ? { ...r, images: r.images.filter((u) => live.has(u)) } : r));
+  const images = search.images.filter((u) => live.has(u));
   return [
     { role: "system", content: SYSTEM_PROMPT },
     ...history,
-    { role: "user", content: buildPrompt(search.queryContext, contexts, search.results, search.images) },
+    { role: "user", content: buildPrompt(search.queryContext, contexts, results, images) },
   ];
 }
 

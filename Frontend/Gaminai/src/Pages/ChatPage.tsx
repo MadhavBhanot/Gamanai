@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import BrandBadge from '../components/BrandBadge';
-import MarkdownText from '../components/MarkdownText';
+import MarkdownText, { hideBrokenImage } from '../components/MarkdownText';
 import ImageModal from '../components/ImageModal';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { isGuestMode } from '../lib/guest';
@@ -2042,7 +2042,7 @@ const ChatPage = () => {
                       target="_blank"
                       title={source.url}
                     >
-                      <img alt="" height="24" src={source.favicon} width="24" />
+                      <img alt="" height="24" onError={hideBrokenImage} src={source.favicon} width="24" />
                       <span className="source-pill-copy">
                         <span className="source-pill-heading">
                           <strong>{source.title}</strong>

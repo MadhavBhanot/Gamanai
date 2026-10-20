@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, SyntheticEvent } from 'react';
 
 type MarkdownTextProps = {
   content: string;
@@ -82,6 +82,12 @@ const parseEmphasisToken = (token: string) => {
   return null;
 };
 
+// The server drops dead links, but a host can still block hotlinking; hide the whole figure rather than a broken icon
+export const hideBrokenImage = (event: SyntheticEvent<HTMLImageElement>) => {
+  const img = event.currentTarget;
+  (img.closest<HTMLElement>('.md-figure, .md-inline-image-link') ?? img).style.display = 'none';
+};
+
 const renderImage = (
   image: ParsedImage,
   key: string,
@@ -107,7 +113,7 @@ const renderImage = (
         target="_blank"
         onClick={handleClick}
       >
-        <img alt={alt} className="md-inline-image" loading="lazy" src={image.src} />
+        <img alt={alt} className="md-inline-image" loading="lazy" onError={hideBrokenImage} src={image.src} />
       </a>
     );
   }
@@ -121,7 +127,7 @@ const renderImage = (
         target="_blank"
         onClick={handleClick}
       >
-        <img alt={alt} className="md-image" loading="lazy" src={image.src} />
+        <img alt={alt} className="md-image" loading="lazy" onError={hideBrokenImage} src={image.src} />
       </a>
       {image.caption ? <figcaption>{image.caption}</figcaption> : null}
     </figure>

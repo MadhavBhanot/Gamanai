@@ -90,6 +90,7 @@ describe("prepareDeepAnswer", () => {
       chain: [plannerModel([{ calls: [{ toolName: "web_search", input: { query: "again" } }] }])],
     });
     expect(prepared.research.modelCalls).toBe(6);
+    expect(prepared.steps).toHaveLength(1); // the repeated query hit the searcher once
   });
 
   it("falls back to a single search when the planner never calls a tool", async () => {

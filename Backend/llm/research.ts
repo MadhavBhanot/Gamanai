@@ -68,7 +68,12 @@ export async function prepareDeepAnswer(
   // The image candidate list costs ~1k prompt tokens (measured 7.27k with 10 passages); drop 2 passages to fit Groq
   const maxContexts = fetchImages ? MAX_CONTEXTS - 2 : MAX_CONTEXTS;
 
+  const searched = new Set<string>();
   async function gather(toolName: ResearchStep["tool"], input: string) {
+    // Weaker planners repeat themselves; don't spend a Tavily credit on a query we already ran
+    const key = input.trim().toLowerCase();
+    if (searched.has(key)) return "Already searched; use a different query or reply DONE.";
+    searched.add(key);
     try {
       // The searcher extracts any URL in its query, so extract_url is a search on the URL itself.
       const search = await searcher(input, { images: fetchImages });
@@ -159,7 +164,7 @@ export async function prepareDeepAnswer(
     contexts,
     contextMode: usedMode,
     retrievalMs: research.ms,
-    messages: answerMessages(search, contexts, history),
+    messages: await answerMessages(search, contexts, history),
     steps,
     research,
   };
