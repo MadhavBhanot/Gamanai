@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { startRequestLog } from "../lib/requestLog";
 
-const create = vi.fn();
+// vi.mock is hoisted above the imports, so the mock fn must be hoisted with it
+const { create } = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("../db", () => ({ prisma: { requestLog: { create } } }));
 vi.mock("../llm/providers", () => ({ ANSWER_CHAIN: [{ label: "google:primary" }] }));
-
-const { startRequestLog } = await import("../lib/requestLog");
 
 describe("startRequestLog", () => {
   beforeEach(() => {
