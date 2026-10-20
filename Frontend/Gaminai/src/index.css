@@ -1707,6 +1707,41 @@ h2 {
   color: var(--accent-strong);
 }
 
+.message-feedback {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.message-feedback button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.message-feedback button:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.message-feedback button.is-active {
+  border-color: rgba(108, 140, 255, 0.45);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.message-feedback button:disabled:not(.is-active) {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .research-steps {
   display: grid;
   gap: 4px;

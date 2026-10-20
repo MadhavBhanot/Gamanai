@@ -51,6 +51,7 @@ export async function authorize(
         },
       });
       req.userId = dbUser.id;
+      req.userEmail = email;
     } catch (error) {
       console.error("Failed to sync authenticated user", error);
       return res.status(500).json({ error: "Internal server error" });

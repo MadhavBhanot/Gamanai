@@ -1,4 +1,5 @@
 import type express from "express";
+import type { RequestLogger } from "../lib/requestLog";
 import { setSseHeaders, writeSse } from "../lib/sse";
 import type { WebSearchResult } from "../retrieval/search";
 import { generateAnswer } from "./answer";
@@ -16,6 +17,8 @@ export async function streamAiResponse({
   messages,
   contexts = [],
   onComplete,
+  log,
+  researchSteps,
 }: {
   res: express.Response;
   conversationId: string;
@@ -23,6 +26,8 @@ export async function streamAiResponse({
   messages: ChatMessage[];
   contexts?: SourceContext[];
   onComplete?: (content: string) => Promise<void>;
+  log?: RequestLogger;
+  researchSteps?: number;
 }) {
   if (!res.headersSent) {
     setSseHeaders(res, conversationId);
@@ -34,9 +39,10 @@ export async function streamAiResponse({
   try {
     writeSse(res, { type: "response_start", conversationId });
 
-    const { content } = await generateAnswer(messages, (text) =>
+    const { content, model, ttftMs, promptTokens, completionTokens } = await generateAnswer(messages, (text) =>
       writeSse(res, { type: "delta", text }),
     );
+    log?.finish({ ok: true, model, ttftMs, promptTokens, completionTokens, researchSteps, sourceCount: webSearchResponse.length });
 
     // [n] in the answer refers to contexts[n-1]; ship the mapping as the last chunk and persist it with the
     // message so citations still link after a reload.
@@ -52,6 +58,7 @@ export async function streamAiResponse({
     writeSse(res, { type: "response_end", conversationId });
   } catch (error) {
     console.error("AI stream failed", error);
+    log?.finish({ ok: false, error: String((error as Error)?.message ?? error), researchSteps });
     writeSse(res, {
       type: "error",
       error: "AI response failed",

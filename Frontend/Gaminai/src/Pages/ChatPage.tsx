@@ -14,6 +14,8 @@ import {
   SendHorizontal,
   Sparkles,
   Telescope,
+  ThumbsDown,
+  ThumbsUp,
   Trash2,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
@@ -22,12 +24,8 @@ import MarkdownText, { hideBrokenImage } from '../components/MarkdownText';
 import ImageModal from '../components/ImageModal';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { isGuestMode } from '../lib/guest';
+import { API_BASE_URL } from '../lib/api';
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ??
-  import.meta.env.VITE_API_URL ??
-  'http://localhost:8000'
-).replace(/\/$/, '');
 
 type MessageRole = 'user' | 'assistant' | 'system';
 type SourceStatus = 'loading' | 'ready';
@@ -39,6 +37,7 @@ type ChatMessage = {
   rawContent?: string;
   thinkContent?: string;
   researchSteps?: string[]; // deep mode: one line per agent search, shown in the thinking trace
+  mode?: 'quick' | 'deep';
   status?: 'streaming' | 'complete' | 'error';
 };
 
@@ -1162,6 +1161,29 @@ const ChatPage = () => {
     setSources(sourcesByConversation[activeConversationId] ?? []);
   }, [activeConversationId, sourcesByConversation]);
 
+  // Thumbs up/down: stored server-side with the question and answer text, so guest answers can be rated too
+  const [ratings, setRatings] = useState<Record<string, 1 | -1>>({});
+  const rateAnswer = async (message: ChatMessage, question: string, rating: 1 | -1) => {
+    setRatings((current) => ({ ...current, [message.id]: rating }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating,
+          query: question,
+          answer: message.content.slice(0, 20000),
+          mode: message.mode,
+          conversationId: activeConversationId ?? undefined,
+        }),
+      });
+      if (!response.ok) throw new Error(`Feedback failed with ${response.status}`);
+    } catch {
+      // Let the user try again rather than showing a vote that wasn't saved
+      setRatings(({ [message.id]: _dropped, ...rest }) => rest);
+    }
+  };
+
   const getAccessToken = async () => {
     if (!isSupabaseConfigured) {
       return null;
@@ -1528,6 +1550,7 @@ const ChatPage = () => {
         role: 'assistant',
         content: '',
         status: 'streaming',
+        mode: deepMode ? 'deep' : 'quick',
       },
     ]);
     scrollChatToBottom('smooth');
@@ -2072,17 +2095,39 @@ const ChatPage = () => {
                 <p>Loading the selected chat...</p>
               </article>
             ) : null}
-            {messages.map((message) => (
-              <article className={`message ${message.role}`} key={message.id}>
-                <span className="message-role">{message.role === 'user' ? 'You' : 'Gaminai'}</span>
-                {message.role === 'assistant' ? (
-                  <AssistantMessageBody message={message} onImageClick={(src, alt) => setSelectedImage({ src, alt })} />
-                ) : (
-                  <p>{message.content}</p>
-                )}
-                {message.status === 'streaming' ? <span className="typing-bar" /> : null}
-              </article>
-            ))}
+            {messages.map((message, index) => {
+              const question = messages[index - 1]?.role === 'user' ? messages[index - 1].content : '';
+              const canRate = message.role === 'assistant' && message.status === 'complete' && question && message.content;
+              return (
+                <article className={`message ${message.role}`} key={message.id}>
+                  <span className="message-role">{message.role === 'user' ? 'You' : 'Gaminai'}</span>
+                  {message.role === 'assistant' ? (
+                    <AssistantMessageBody message={message} onImageClick={(src, alt) => setSelectedImage({ src, alt })} />
+                  ) : (
+                    <p>{message.content}</p>
+                  )}
+                  {message.status === 'streaming' ? <span className="typing-bar" /> : null}
+                  {canRate ? (
+                    <div className="message-feedback">
+                      {([1, -1] as const).map((rating) => (
+                        <button
+                          aria-label={rating === 1 ? 'Good answer' : 'Bad answer'}
+                          aria-pressed={ratings[message.id] === rating}
+                          className={ratings[message.id] === rating ? 'is-active' : ''}
+                          disabled={message.id in ratings}
+                          key={rating}
+                          onClick={() => void rateAnswer(message, question, rating)}
+                          title={rating === 1 ? 'Good answer' : 'Bad answer: helps us build test cases'}
+                          type="button"
+                        >
+                          {rating === 1 ? <ThumbsUp aria-hidden="true" size={14} /> : <ThumbsDown aria-hidden="true" size={14} />}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
 
           {suggestedPrompts.length > 0 && !suggestedPromptsCollapsed && (

@@ -3,7 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import { allowedOrigins } from "./config";
 import { prisma } from "./db";
+import { adminRouter } from "./routes/admin";
 import { aiRouter } from "./routes/ai";
+import { feedbackRouter } from "./routes/feedback";
 import { conversationsRouter } from "./routes/conversations";
 
 export const app = express();
@@ -46,6 +48,8 @@ app.get("/health", async (_req, res) => {
 
 app.use("/api/conversations", conversationsRouter);
 app.use("/api/AI", aiRouter);
+app.use("/api/feedback", feedbackRouter);
+app.use("/api/admin", adminRouter);
 
 app.use(
   (

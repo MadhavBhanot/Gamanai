@@ -72,3 +72,41 @@ model SourceChunk {
   @@unique([url, contentHash])
   @@index([url])
 }
+
+// One row per AI request, for the /admin ops dashboard. Written fire-and-forget; never blocks an answer.
+model RequestLog {
+  id               BigInt   @id @default(autoincrement())
+  createdAt        DateTime @default(now())
+  route            String // ai | follow_up | guest
+  mode             String // quick | deep
+  userId           String?
+  conversationId   String?
+  model            String?
+  fellBack         Boolean  @default(false)
+  ok               Boolean
+  error            String?
+  totalMs          Int
+  ttftMs           Int?
+  promptTokens     Int?
+  completionTokens Int?
+  researchSteps    Int?
+  sourceCount      Int?
+
+  @@index([createdAt])
+}
+
+// Thumbs up/down on an answer. Query and answer are stored as text so guest answers (never persisted) can be rated
+// and a disliked answer can be turned into an eval case.
+model Feedback {
+  id             BigInt   @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  rating         Int // 1 = up, -1 = down
+  userId         String?
+  conversationId String?
+  mode           String?
+  query          String
+  answer         String
+  comment        String?
+
+  @@index([createdAt])
+}
