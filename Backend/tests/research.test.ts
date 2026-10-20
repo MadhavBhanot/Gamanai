@@ -70,6 +70,19 @@ describe("prepareDeepAnswer", () => {
     expect(prepared.messages.at(-1)?.content).toContain("[3] About X founding year");
   });
 
+  it("fetches images in every sub-search when the user's question asks for them", async () => {
+    const flags: Array<boolean | undefined> = [];
+    await prepareDeepAnswer("Show me pictures of the 2024 Best Picture director", [], {
+      searcher: (q, opts) => {
+        flags.push(opts?.images);
+        return searcher(q);
+      },
+      mode: "snippets",
+      chain: [plannerModel([{ calls: [{ toolName: "web_search", input: { query: "Christopher Nolan" } }] }, { text: "DONE" }])],
+    });
+    expect(flags).toEqual([true]);
+  });
+
   it("stops after the step limit", async () => {
     const prepared = await prepareDeepAnswer("loop forever", [], {
       searcher,

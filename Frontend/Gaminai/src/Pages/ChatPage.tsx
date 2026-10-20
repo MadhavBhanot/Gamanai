@@ -38,6 +38,7 @@ type ChatMessage = {
   content: string;
   rawContent?: string;
   thinkContent?: string;
+  researchSteps?: string[]; // deep mode: one line per agent search, shown in the thinking trace
   status?: 'streaming' | 'complete' | 'error';
 };
 
@@ -644,12 +645,13 @@ const AssistantMessageBody = ({
   message: ChatMessage;
   onImageClick?: (src: string, alt?: string) => void;
 }) => {
-  const hasThinkContent = Boolean(message.thinkContent?.trim());
+  const researchSteps = message.researchSteps ?? [];
+  const hasThinkContent = Boolean(message.thinkContent?.trim()) || researchSteps.length > 0;
   const [isThinkOpen, setIsThinkOpen] = useState(false);
 
   const liveThinkLines = useMemo(
-    () => splitStreamingTraceLines(message.thinkContent ?? '').slice(-5),
-    [message.thinkContent],
+    () => [...researchSteps, ...splitStreamingTraceLines(message.thinkContent ?? '')].slice(-5),
+    [researchSteps, message.thinkContent],
   );
 
   useEffect(() => {
@@ -675,11 +677,22 @@ const AssistantMessageBody = ({
             onClick={() => setIsThinkOpen((current) => !current)}
             type="button"
           >
-            <span>{message.status === 'streaming' ? 'Thinking trace' : 'Reasoning trace'}</span>
+            <span>
+              {researchSteps.length
+                ? `Research trace · ${researchSteps.length} step${researchSteps.length === 1 ? '' : 's'}`
+                : message.status === 'streaming' ? 'Thinking trace' : 'Reasoning trace'}
+            </span>
             <ChevronDown className="collapse-icon" size={14} />
           </button>
           {isThinkOpen ? (
             <div className="message-think-body">
+              {researchSteps.length ? (
+                <ol className="research-steps">
+                  {researchSteps.map((step, index) => (
+                    <li key={`${message.id}-step-${index}`}>{step}</li>
+                  ))}
+                </ol>
+              ) : null}
               <PlainTextStream
                 className={`message-think-expanded ${message.status === 'streaming' ? 'is-live' : ''}`}
                 content={message.thinkContent ?? ''}
@@ -743,7 +756,6 @@ const ChatPage = () => {
   const [suggestedPromptsCollapsed, setSuggestedPromptsCollapsed] = useState(false);
   // Deep research: the backend plans several searches before answering, streamed as "Research step" statuses
   const [deepMode, setDeepMode] = useState(false);
-  const [researchSteps, setResearchSteps] = useState<StreamLog[]>([]);
   const [openConversationMenuId, setOpenConversationMenuId] = useState<string | null>(null);
   const [conversationPendingDelete, setConversationPendingDelete] =
     useState<ConversationSummary | null>(null);
@@ -1424,7 +1436,10 @@ const ChatPage = () => {
       }
       addStreamLog(event.label, event.detail);
       if (/^(Planning research|Research step)/.test(event.label)) {
-        setResearchSteps((current) => [...current, { id: makeId('step'), label: event.label, detail: event.detail ?? '' }]);
+        const line = event.detail ? `${event.label}: ${event.detail}` : event.label;
+        setMessages((current) =>
+          current.map((m) => (m.id === assistantId ? { ...m, researchSteps: [...(m.researchSteps ?? []), line] } : m)),
+        );
       }
       return;
     }
@@ -1532,7 +1547,6 @@ const ChatPage = () => {
     setFollowUps([]);
     setNextSteps([]);
     setSuggestedPromptsCollapsed(false);
-    setResearchSteps([]);
     addStreamLog('Agent run started', prompt);
     const requestStartedAt = new Date().toISOString();
 
@@ -2007,16 +2021,6 @@ const ChatPage = () => {
                   </span>
                 ))}
               </div>
-              {researchSteps.length ? (
-                <ol className="research-steps" aria-label="Research steps">
-                  {researchSteps.map((step) => (
-                    <li key={step.id}>
-                      <strong>{step.label}</strong>
-                      {step.detail ? <span>{step.detail}</span> : null}
-                    </li>
-                  ))}
-                </ol>
-              ) : null}
             </section>
 
             <div className={`inline-sources ${sourcesCollapsed ? 'is-collapsed' : ''}`}>

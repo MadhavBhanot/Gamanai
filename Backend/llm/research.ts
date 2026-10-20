@@ -2,7 +2,7 @@ import { generateText, stepCountIs, tool, type StopCondition, type ToolSet } fro
 import { z } from "zod";
 import { truncateText } from "../lib/text";
 import { buildQueryOptimizationContext, dedupeStrings } from "../retrieval/query";
-import { dedupeWebSearchResults, getWebSearchResults, type WebSearchResult } from "../retrieval/search";
+import { dedupeWebSearchResults, getWebSearchResults, wantsImages, type WebSearchResult } from "../retrieval/search";
 import { answerMessages, buildContexts, CONTEXT_MODE, prepareAnswer, type ContextMode, type PreparedAnswer } from "./answer";
 import type { SourceContext } from "./buildPrompt";
 import { ANSWER_CHAIN, providerOptionsFor, type ModelRef } from "./providers";
@@ -21,6 +21,8 @@ Break the user's question into the sub-questions needed to answer it fully, then
 - Call web_search once per sub-question with a short keyword query. Run independent searches in the same step.
 - Make every query self-contained: name the specific people, titles, places and years (never a bare word like "director").
   When a later sub-question depends on an earlier answer, search for it only after you have that answer.
+- If the user wants images, finish with one search for exactly what should be pictured (e.g. the person's full name);
+  images come from search results, so the subject must be searched by name.
 - Call extract_url to read one specific page: a URL the user gave, or a result that looks essential.
 - Read what each tool returns. Search again only for the parts that are still missing.
 - Stop as soon as the passages cover every sub-question, and reply with the single word DONE.
@@ -61,17 +63,21 @@ export async function prepareDeepAnswer(
   const images: string[] = [];
   const steps: ResearchStep[] = [];
   let usedMode: ContextMode = mode;
+  // Sub-queries rarely repeat "show me pictures", so the user's question decides whether to fetch images
+  const fetchImages = wantsImages(query);
+  // The image candidate list costs ~1k prompt tokens (measured 7.27k with 10 passages); drop 2 passages to fit Groq
+  const maxContexts = fetchImages ? MAX_CONTEXTS - 2 : MAX_CONTEXTS;
 
   async function gather(toolName: ResearchStep["tool"], input: string) {
     try {
       // The searcher extracts any URL in its query, so extract_url is a search on the URL itself.
-      const search = await searcher(input);
+      const search = await searcher(input, { images: fetchImages });
       const found = await buildContexts(input, search.results, mode);
       if (found.mode !== mode) usedMode = found.mode;
       const fresh = found.contexts
         .slice(0, PASSAGES_PER_SEARCH)
         .filter((c) => !contexts.some((e) => e.url === c.url && e.text === c.text))
-        .slice(0, MAX_CONTEXTS - contexts.length);
+        .slice(0, maxContexts - contexts.length);
       contexts.push(...fresh);
       results.push(...search.results);
       if (fresh.length) images.push(...search.images);
@@ -101,7 +107,7 @@ export async function prepareDeepAnswer(
 
   const stopWhen: StopCondition<typeof tools>[] = [
     stepCountIs(MAX_STEPS),
-    () => contexts.length >= MAX_CONTEXTS,
+    () => contexts.length >= maxContexts,
     ({ steps: done }) => done.reduce((n, s) => n + (s.usage.inputTokens ?? 0), 0) > RESEARCH_INPUT_TOKEN_BUDGET,
   ];
 

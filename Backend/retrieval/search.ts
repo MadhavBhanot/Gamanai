@@ -41,13 +41,14 @@ export function dedupeWebSearchResults(results: WebSearchResult[]) {
   });
 }
 
-export async function getWebSearchResults(query: string) {
+export const wantsImages = (query: string) =>
+  /image|photo|picture|visual|graph|chart|show me|display|gallery/i.test(query);
+
+/** `images` overrides the keyword check, e.g. for a deep-research sub-query of a question that asked for images. */
+export async function getWebSearchResults(query: string, { images }: { images?: boolean } = {}) {
   const queryContext = buildQueryOptimizationContext(query);
 
-  const needsImages =
-    /image|photo|picture|visual|graph|chart|show me|display|gallery/i.test(
-      query,
-    );
+  const needsImages = images ?? wantsImages(query);
   console.log(`[Tavily] Query images needed: ${needsImages}`);
 
   // Run URL extraction and web search in PARALLEL instead of sequentially

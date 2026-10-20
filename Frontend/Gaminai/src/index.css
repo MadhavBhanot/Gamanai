@@ -1710,29 +1710,13 @@ h2 {
 .research-steps {
   display: grid;
   gap: 4px;
-  margin: 10px 0 0;
-  padding: 0;
+  margin: 0 0 10px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--line);
   list-style: none;
-  font-size: 12px;
-}
-
-.research-steps li {
-  display: flex;
-  gap: 8px;
-  min-width: 0;
   color: var(--text-muted);
-}
-
-.research-steps strong {
-  flex: none;
-  color: var(--text);
-  font-weight: 600;
-}
-
-.research-steps span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .composer-toggle.is-collapsed svg {
