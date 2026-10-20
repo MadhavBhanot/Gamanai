@@ -55,12 +55,23 @@ export async function prepareAnswer(
   const retrievalStartedAt = performance.now();
   const { contexts, mode: usedMode } = await buildContexts(query, search.results, mode);
   const retrievalMs = performance.now() - retrievalStartedAt;
-  const messages: ChatMessage[] = [
+  const messages = answerMessages(search, contexts, history);
+  return { ...search, contexts, contextMode: usedMode, retrievalMs, messages };
+}
+
+export type PreparedAnswer = Awaited<ReturnType<typeof prepareAnswer>>;
+
+/** The answer model's input: system prompt, history, then the numbered sources and the query. */
+export function answerMessages(
+  search: Awaited<ReturnType<typeof getWebSearchResults>>,
+  contexts: SourceContext[],
+  history: ChatMessage[] = [],
+): ChatMessage[] {
+  return [
     { role: "system", content: SYSTEM_PROMPT },
     ...history,
     { role: "user", content: buildPrompt(search.queryContext, contexts, search.results, search.images) },
   ];
-  return { ...search, contexts, contextMode: usedMode, retrievalMs, messages };
 }
 
 /**

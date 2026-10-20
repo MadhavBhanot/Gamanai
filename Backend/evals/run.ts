@@ -16,6 +16,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { CONTEXT_MODE, generateAnswer, prepareAnswer, type ContextMode } from "../llm/answer";
 import { formatSources } from "../llm/buildPrompt";
+import { prepareDeepAnswer } from "../llm/research";
 import { setEmbeddingLimiter } from "../retrieval/embed";
 import { ANSWER_CHAIN, resolveModel, type ModelRef } from "../llm/providers";
 import { withTimeout } from "../lib/timeout";
@@ -50,6 +51,7 @@ const { values: args } = parseArgs({
     fresh: { type: "boolean", default: false },
     model: { type: "string" }, // provider:model to evaluate; defaults to the app's primary model
     retrieval: { type: "string" }, // hybrid | vector | fts | snippets; defaults to RETRIEVAL_MODE
+    deep: { type: "boolean", default: false }, // research agent loop before answering (Phase 4)
   },
 });
 
@@ -139,8 +141,16 @@ function loadCases(): EvalCase[] {
   return cases;
 }
 
+const DEEP_REQUESTS_RESERVED = 4; // typical research loop length; the loop's calls aren't paced one by one
+
+async function prepare(query: string) {
+  if (!args.deep) return { ...(await prepareAnswer(query, [], cachedSearch, RETRIEVAL)), steps: undefined, research: undefined };
+  await pacerFor(ANSWER).requests.take(DEEP_REQUESTS_RESERVED);
+  return prepareDeepAnswer(query, [], { searcher: cachedSearch, mode: RETRIEVAL, chain: [ANSWER], maxRetries: 3 });
+}
+
 async function evaluate(testCase: EvalCase) {
-  const prepared = await prepareAnswer(testCase.query, [], cachedSearch, RETRIEVAL);
+  const prepared = await prepare(testCase.query);
   const answerEstimate = estimateTokens(JSON.stringify(prepared.messages)) + ANSWER_MAX_TOKENS;
   const answer = await withRateLimitRetry(async () => {
     await paced(ANSWER, answerEstimate);
@@ -177,9 +187,13 @@ async function evaluate(testCase: EvalCase) {
     contextChars: formatSources(prepared.contexts).length,
     formatOk: parsed.formatOk,
     ttftMs: Math.round(answer.ttftMs),
-    totalMs: Math.round(answer.totalMs),
+    // Deep mode's research time counts toward latency so the Quick vs Deep comparison is fair
+    totalMs: Math.round(answer.totalMs + (prepared.research?.ms ?? 0)),
     promptTokens: answer.promptTokens,
     completionTokens: answer.completionTokens,
+    researchSteps: prepared.steps?.length ?? 0,
+    researchCalls: prepared.research?.modelCalls ?? 0,
+    researchTokens: (prepared.research?.inputTokens ?? 0) + (prepared.research?.outputTokens ?? 0),
     sourceCount: prepared.results.length,
     verdict,
     answer: parsed.answer,
@@ -210,6 +224,12 @@ function summarize(items: ItemResult[]) {
     ttftP95Ms: percentile(ok.map((i) => i.ttftMs), 95),
     avgPromptTokens: mean(ok.map((i) => i.promptTokens)),
     avgCompletionTokens: mean(ok.map((i) => i.completionTokens)),
+    // Cost per answer in tokens, research loop included (all free-tier, so tokens stand in for $)
+    avgTotalTokens: mean(ok.map((i) => i.promptTokens + i.completionTokens + (i.researchTokens ?? 0))),
+    avgResearchSteps: mean(ok.map((i) => i.researchSteps ?? 0)),
+    avgModelCalls: mean(ok.map((i) => 1 + (i.researchCalls ?? 0))),
+    // Deep runs whose agent never searched fell back to quick mode and don't measure the agent
+    deepFallbacks: args.deep ? ok.filter((i) => !i.researchSteps).length : 0,
   };
 }
 
@@ -255,7 +275,7 @@ async function main() {
   );
   if (finished.size) console.log(`Resuming: ${finished.size} cases already done in ${path.basename(checkpointFile)}`);
 
-  console.log(`Evaluating ${cases.length} cases with ${ANSWER.label} (${RETRIEVAL} context), judged by ${JUDGE.label}`);
+  console.log(`Evaluating ${cases.length} cases with ${ANSWER.label} (${args.deep ? "deep" : "quick"}, ${RETRIEVAL} context), judged by ${JUDGE.label}`);
 
   await Promise.all(
     Array.from({ length: concurrency }, async () => {
@@ -306,7 +326,7 @@ Stopped early: ${stopped.message}`);
   };
 
   const date = new Date().toISOString();
-  const meta = { label: args.label, date, model: ANSWER.label, retrieval: RETRIEVAL, judgeModel: JUDGE.label, git: gitSha(), freshSearch: args.fresh };
+  const meta = { label: args.label, date, model: ANSWER.label, retrieval: RETRIEVAL, answerMode: args.deep ? "deep" : "quick", judgeModel: JUDGE.label, git: gitSha(), freshSearch: args.fresh };
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
   const outFile = path.join(RESULTS_DIR, `${date.slice(0, 19).replace(/[:T]/g, "-")}_${args.label}.json`);
   fs.writeFileSync(outFile, JSON.stringify({ meta, summary, items }, null, 2));

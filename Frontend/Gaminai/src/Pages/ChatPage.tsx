@@ -13,6 +13,7 @@ import {
   Search,
   SendHorizontal,
   Sparkles,
+  Telescope,
   Trash2,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
@@ -504,7 +505,7 @@ const normalizePayloadEvents = (payload: unknown): StreamEvent[] => {
   }
 
   if (type === 'status' || type === 'progress') {
-    return [{ type: 'status', label: message || text || 'Working', detail: getString(payload.detail), conversationId }];
+    return [{ type: 'status', label: getString(payload.label) || message || text || 'Working', detail: getString(payload.detail), conversationId }];
   }
 
   if (type === 'error') {
@@ -740,6 +741,9 @@ const ChatPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [sourcesCollapsed, setSourcesCollapsed] = useState(false);
   const [suggestedPromptsCollapsed, setSuggestedPromptsCollapsed] = useState(false);
+  // Deep research: the backend plans several searches before answering, streamed as "Research step" statuses
+  const [deepMode, setDeepMode] = useState(false);
+  const [researchSteps, setResearchSteps] = useState<StreamLog[]>([]);
   const [openConversationMenuId, setOpenConversationMenuId] = useState<string | null>(null);
   const [conversationPendingDelete, setConversationPendingDelete] =
     useState<ConversationSummary | null>(null);
@@ -1419,6 +1423,9 @@ const ChatPage = () => {
         lastLoadedConversationIdRef.current = event.conversationId;
       }
       addStreamLog(event.label, event.detail);
+      if (/^(Planning research|Research step)/.test(event.label)) {
+        setResearchSteps((current) => [...current, { id: makeId('step'), label: event.label, detail: event.detail ?? '' }]);
+      }
       return;
     }
 
@@ -1452,8 +1459,9 @@ const ChatPage = () => {
       }
 
       const chunk = decoder.decode(value, { stream: true });
+      // A chunk starting with ':' is an SSE keep-alive comment, not answer text
       const isStructured =
-        chunk.includes('data:') || /^\s*[a-z0-9]+:/i.test(chunk) || chunk.trim().startsWith('{');
+        chunk.includes('data:') || /^\s*([a-z0-9]+)?:/i.test(chunk) || chunk.trim().startsWith('{');
 
       if (!isStructured && !buffer) {
         queueAssistantText(assistantId, chunk);
@@ -1524,6 +1532,7 @@ const ChatPage = () => {
     setFollowUps([]);
     setNextSteps([]);
     setSuggestedPromptsCollapsed(false);
+    setResearchSteps([]);
     addStreamLog('Agent run started', prompt);
     const requestStartedAt = new Date().toISOString();
 
@@ -1550,9 +1559,11 @@ const ChatPage = () => {
             ? {
                 conversationId: activeConversationId,
                 query: prompt,
+                mode: deepMode ? 'deep' : 'quick',
               }
             : {
                 query: prompt,
+                mode: deepMode ? 'deep' : 'quick',
               },
         ),
       });
@@ -1996,6 +2007,16 @@ const ChatPage = () => {
                   </span>
                 ))}
               </div>
+              {researchSteps.length ? (
+                <ol className="research-steps" aria-label="Research steps">
+                  {researchSteps.map((step) => (
+                    <li key={step.id}>
+                      <strong>{step.label}</strong>
+                      {step.detail ? <span>{step.detail}</span> : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
             </section>
 
             <div className={`inline-sources ${sourcesCollapsed ? 'is-collapsed' : ''}`}>
@@ -2114,6 +2135,16 @@ const ChatPage = () => {
                 <ChevronDown aria-hidden="true" size={16} />
               </button>
             ) : null}
+            <button
+              aria-pressed={deepMode}
+              className={`composer-mode ${deepMode ? 'is-deep' : ''}`}
+              onClick={() => setDeepMode((current) => !current)}
+              title={deepMode ? 'Deep research: plans several searches before answering' : 'Quick: one search, fastest answer'}
+              type="button"
+            >
+              <Telescope aria-hidden="true" size={14} />
+              <span>{deepMode ? 'Deep' : 'Quick'}</span>
+            </button>
             <button className="composer-send" disabled={!canSubmit} type="submit">
               <SendHorizontal aria-hidden="true" size={16} />
             </button>

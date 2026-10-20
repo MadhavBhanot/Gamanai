@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
 import { GUEST_DAILY_LIMIT } from "../config";
@@ -9,10 +9,15 @@ import { asyncHandler, getRequestUserId } from "../lib/http";
 import { failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
 import { slugify } from "../lib/text";
 import { prepareAnswer } from "../llm/answer";
+import { prepareDeepAnswer } from "../llm/research";
 import { streamAiResponse, type ChatMessage } from "../llm/stream";
+
+// "deep" runs the research agent loop before answering; "quick" is the single-search pipeline
+const answerMode = z.enum(["quick", "deep"]).default("quick");
 
 const aiRequestSchema = z.object({
   query: z.string().trim().min(1, "query is required"),
+  mode: answerMode,
 });
 
 const followUpRequestSchema = aiRequestSchema.extend({
@@ -21,7 +26,29 @@ const followUpRequestSchema = aiRequestSchema.extend({
 
 const guestRequestSchema = z.object({
   query: z.string().trim().min(1, "query is required").max(500, "query is too long"),
+  mode: answerMode,
 });
+
+/** Quick or deep preparation; deep streams each research step as a status event. */
+function prepare(
+  res: Response,
+  conversationId: string,
+  query: string,
+  mode: "quick" | "deep",
+  history: ChatMessage[] = [],
+) {
+  if (mode === "quick") return prepareAnswer(query, history);
+  writeSseStatus(res, conversationId, "Planning research", "Breaking the question into searches.");
+  return prepareDeepAnswer(query, history, {
+    onStep: ({ index, tool, input, found }) =>
+      writeSseStatus(
+        res,
+        conversationId,
+        `Research step ${index}: ${tool === "extract_url" ? "read page" : "search"}`,
+        `${input} (${found} new passage${found === 1 ? "" : "s"})`,
+      ),
+  });
+}
 
 const guestLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
@@ -50,7 +77,7 @@ aiRouter.post(
       return;
     }
 
-    const { query } = parsed.data;
+    const { query, mode } = parsed.data;
 
     const conversation = await prisma.conversation.create({
       data: {
@@ -72,7 +99,7 @@ aiRouter.post(
     writeSseStatus(res, conversation.id, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query);
+      const { results: webSearchResponse, messages, contexts } = await prepare(res, conversation.id, query, mode);
 
       writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -112,7 +139,7 @@ aiRouter.post(
       return;
     }
 
-    const { query } = parsed.data;
+    const { query, mode } = parsed.data;
     const conversationId = `guest-${crypto.randomUUID()}`;
 
     setSseHeaders(res, conversationId);
@@ -120,7 +147,7 @@ aiRouter.post(
     writeSseStatus(res, conversationId, "Agent run started", "Searching the web for sources.");
 
     try {
-      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query);
+      const { results: webSearchResponse, messages, contexts } = await prepare(res, conversationId, query, mode);
 
       writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -153,7 +180,7 @@ aiRouter.post(
       return;
     }
 
-    const { conversationId, query } = parsed.data;
+    const { conversationId, query, mode } = parsed.data;
     const conversation = await prisma.conversation.findFirst({
       where: { id: conversationId, userId },
       include: {
@@ -204,7 +231,7 @@ aiRouter.post(
           }]
         : [];
 
-      const { results: webSearchResponse, messages, contexts } = await prepareAnswer(query, history);
+      const { results: webSearchResponse, messages, contexts } = await prepare(res, conversationId, query, mode, history);
       writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
 
       await streamAiResponse({

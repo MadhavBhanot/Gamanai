@@ -1679,6 +1679,62 @@ h2 {
   background: rgba(108, 140, 255, 0.25);
 }
 
+.composer-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  flex: none;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.composer-mode:hover {
+  color: var(--text);
+  border-color: rgba(108, 140, 255, 0.35);
+}
+
+.composer-mode.is-deep {
+  border-color: rgba(108, 140, 255, 0.45);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.research-steps {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.research-steps li {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.research-steps strong {
+  flex: none;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.research-steps span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .composer-toggle.is-collapsed svg {
   transform: rotate(-90deg);
 }

@@ -16,6 +16,8 @@ type Summary = {
   ttftP95Ms: number | null;
   avgPromptTokens: number | null;
   avgCompletionTokens: number | null;
+  avgTotalTokens?: number | null;
+  avgModelCalls?: number | null;
 };
 
 type Run = {
@@ -24,6 +26,7 @@ type Run = {
   date: string;
   model: string;
   retrieval?: string;
+  answerMode?: 'quick' | 'deep';
   judgeModel: string;
   git: string;
   summary: { overall: Summary; byBucket: Record<string, Summary> };
@@ -47,6 +50,8 @@ const pct = (value: number | null | undefined) =>
   value === null || value === undefined ? '–' : `${(value * 100).toFixed(1)}%`;
 const secs = (ms: number | null | undefined) =>
   ms === null || ms === undefined ? '–' : `${(ms / 1000).toFixed(2)}s`;
+// Runs before Phase 4 didn't record a total; for them it's just the answer call
+const totalTokens = (s: Summary) => s.avgTotalTokens ?? (s.avgPromptTokens ?? 0) + (s.avgCompletionTokens ?? 0);
 
 const EvalsPage = () => {
   const [runs, setRuns] = useState<Run[] | null>(null);
@@ -62,8 +67,24 @@ const EvalsPage = () => {
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not load eval results'));
   }, []);
 
-  const latest = runs?.length ? runs[runs.length - 1] : null;
+  // Headline = the latest full-set Quick run; subset and Deep runs get their own sections
+  const fullQuick = (runs ?? []).filter((r) => r.summary.overall.n === 100 && r.answerMode !== 'deep');
+  const latest = fullQuick.at(-1) ?? runs?.at(-1) ?? null;
   const overall = latest?.summary.overall;
+  // The baseline used an older prompt and search cache, so it isn't a fair ablation row
+  const ablation = Object.keys(CONTEXT_NAMES)
+    .reverse()
+    .map((mode) => fullQuick.filter((r) => (r.retrieval ?? 'snippets') === mode && r.label !== 'baseline').at(-1))
+    .filter((r): r is Run => Boolean(r));
+  const deepComparisons = (runs ?? [])
+    .filter((r) => r.answerMode === 'deep')
+    .flatMap((deep) => {
+      const quick = fullQuick.filter((r) => r.retrieval === deep.retrieval).at(-1);
+      return Object.entries(deep.summary.byBucket).flatMap(([bucket, d]) => {
+        const q = quick?.summary.byBucket[bucket];
+        return q ? [{ id: `${deep.file}-${bucket}`, bucket, retrieval: deep.retrieval, quick: q, deep: d }] : [];
+      });
+    });
 
   return (
     <main className="evals-page">
@@ -168,6 +189,94 @@ const EvalsPage = () => {
             </div>
           </section>
 
+          {ablation.length > 1 ? (
+            <section aria-labelledby="ablation-title" className="evals-section">
+              <h2 id="ablation-title">Retrieval ablation</h2>
+              <p className="evals-muted">
+                Same 100 questions, same cached search results, same answer model; only the passages the model sees change.
+              </p>
+              <div className="evals-table-wrap">
+                <table className="evals-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Context</th>
+                      <th scope="col">Correctness</th>
+                      <th scope="col">Faithfulness</th>
+                      <th scope="col">Citation precision</th>
+                      <th scope="col">Multi-hop correct / faithful</th>
+                      <th scope="col">URL-focused correct / faithful</th>
+                      <th scope="col">p50 latency</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ablation.map((run) => {
+                      const s = run.summary.overall;
+                      const mh = run.summary.byBucket.multi_hop;
+                      const url = run.summary.byBucket.url_focus;
+                      return (
+                        <tr key={run.file}>
+                          <th scope="row">{CONTEXT_NAMES[run.retrieval ?? 'snippets']}</th>
+                          <td>{pct(s.correctness)}</td>
+                          <td>{pct(s.faithfulness)}</td>
+                          <td>{pct(s.citationPrecision)}</td>
+                          <td>{pct(mh?.correctness)} / {pct(mh?.faithfulness)}</td>
+                          <td>{pct(url?.correctness)} / {pct(url?.faithfulness)}</td>
+                          <td>{secs(s.latencyP50Ms)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
+
+          {deepComparisons.length ? (
+            <section aria-labelledby="deep-title" className="evals-section">
+              <h2 id="deep-title">Quick vs Deep research</h2>
+              <p className="evals-muted">
+                Deep mode lets an agent plan several searches before answering. Latency and tokens include the research loop.
+              </p>
+              <div className="evals-table-wrap">
+                <table className="evals-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Questions</th>
+                      <th scope="col">Mode</th>
+                      <th scope="col">Correctness</th>
+                      <th scope="col">Faithfulness</th>
+                      <th scope="col">Citation precision</th>
+                      <th scope="col">p50 latency</th>
+                      <th scope="col">Tokens / answer</th>
+                      <th scope="col">Model calls</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deepComparisons.flatMap((c) =>
+                      (['quick', 'deep'] as const).map((mode) => {
+                        const s = c[mode];
+                        return (
+                          <tr key={`${c.id}-${mode}`}>
+                            <th scope="row">
+                              {BUCKET_NAMES[c.bucket] ?? c.bucket} ({CONTEXT_NAMES[c.retrieval ?? 'snippets']})
+                            </th>
+                            <td>{mode === 'deep' ? 'Deep' : 'Quick'}</td>
+                            <td>{pct(s.correctness)}</td>
+                            <td>{pct(s.faithfulness)}</td>
+                            <td>{pct(s.citationPrecision)}</td>
+                            <td>{secs(s.latencyP50Ms)}</td>
+                            <td>{Math.round(totalTokens(s)).toLocaleString()}</td>
+                            <td>{(s.avgModelCalls ?? 1).toFixed(1)}</td>
+                          </tr>
+                        );
+                      }),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
+
           <section aria-labelledby="history-title" className="evals-section">
             <h2 id="history-title">Run history</h2>
             <div className="evals-table-wrap">
@@ -192,7 +301,10 @@ const EvalsPage = () => {
                       <th scope="row">{run.label}</th>
                       <td>{new Date(run.date).toLocaleDateString()}</td>
                       <td><code>{run.model}</code></td>
-                      <td>{CONTEXT_NAMES[run.retrieval ?? 'snippets'] ?? run.retrieval}</td>
+                      <td>
+                        {CONTEXT_NAMES[run.retrieval ?? 'snippets'] ?? run.retrieval}
+                        {run.answerMode === 'deep' ? ' · Deep' : ''}
+                      </td>
                       <td>{run.summary.overall.n}</td>
                       <td>{pct(run.summary.overall.correctness)}</td>
                       <td>{pct(run.summary.overall.faithfulness)}</td>
