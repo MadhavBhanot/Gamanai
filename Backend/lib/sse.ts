@@ -47,6 +47,15 @@ export function startSseKeepAlive(res: express.Response) {
   return cleanup;
 }
 
+/** Aborts when the client goes away mid-stream (Stop button, closed tab), so model calls stop spending quota. */
+export function abortOnClose(res: express.Response) {
+  const controller = new AbortController();
+  res.on("close", () => {
+    if (!res.writableFinished) controller.abort(new Error("client disconnected"));
+  });
+  return controller.signal;
+}
+
 /** Emit error + response_end and close the stream; used when preparation fails before the LLM runs. */
 export function failSse(res: express.Response, conversationId: string, message: string) {
   writeSse(res, { type: "error", message, conversationId });

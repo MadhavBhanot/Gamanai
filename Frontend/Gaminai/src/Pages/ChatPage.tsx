@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import {
+  BarChart3,
   ChevronDown,
   ExternalLink,
   LogOut,
@@ -13,6 +14,7 @@ import {
   Search,
   SendHorizontal,
   Sparkles,
+  Square,
   Telescope,
   ThumbsDown,
   ThumbsUp,
@@ -100,14 +102,14 @@ type StreamEvent =
   | { type: 'done' }
   | { type: 'error'; message: string };
 
-const initialMessages: ChatMessage[] = [
-  {
-    id: 'welcome',
-    role: 'assistant',
-    status: 'complete',
-    content:
-      'Ask Gaminai to research a market, product, competitor, or technical choice. Sources and suggested prompts stream into the workspace as the agent works.',
-  },
+const initialMessages: ChatMessage[] = [];
+
+// Empty-state starters, one per feature worth showing a first-time visitor
+const STARTERS: Array<{ text: string; mode: 'quick' | 'deep'; hint: string }> = [
+  { text: 'Who won the 2024 Nobel Prize in Physics, and for what?', mode: 'quick', hint: 'Cited answer' },
+  { text: 'Who directed the 2024 Best Picture winner, and what was their previous film?', mode: 'deep', hint: 'Multi-step research' },
+  { text: 'Summarize https://react.dev/blog in three bullet points', mode: 'quick', hint: 'Reads a URL' },
+  { text: 'Show me photos of the first James Webb Space Telescope images', mode: 'quick', hint: 'Verified images' },
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -755,6 +757,7 @@ const ChatPage = () => {
   const [suggestedPromptsCollapsed, setSuggestedPromptsCollapsed] = useState(false);
   // Deep research: the backend plans several searches before answering, streamed as "Research step" statuses
   const [deepMode, setDeepMode] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
   const [openConversationMenuId, setOpenConversationMenuId] = useState<string | null>(null);
   const [conversationPendingDelete, setConversationPendingDelete] =
     useState<ConversationSummary | null>(null);
@@ -770,6 +773,7 @@ const ChatPage = () => {
 
   // Guests (no sign-in) can chat too; they get single-shot answers via /api/AI/guest
   const canChat = Boolean(user) || isGuestMode();
+  const isEmptyChat = messages.length === 0 && !isLoadingConversation;
   const canSubmit = Boolean(canChat && input.trim() && (!isStreaming || streamingConversationId !== activeConversationId));
 
   const firstName = useMemo(() => {
@@ -1519,7 +1523,8 @@ const ChatPage = () => {
     }
   };
 
-  const runPrompt = async (promptText: string) => {
+  // `mode` is a parameter so a starter can pick Deep without waiting for the toggle's state update
+  const runPrompt = async (promptText: string, mode: 'quick' | 'deep' = deepMode ? 'deep' : 'quick') => {
     const prompt = promptText.trim();
 
     if (!prompt || (isStreaming && streamingConversationId === activeConversationId)) {
@@ -1550,7 +1555,7 @@ const ChatPage = () => {
         role: 'assistant',
         content: '',
         status: 'streaming',
-        mode: deepMode ? 'deep' : 'quick',
+        mode,
       },
     ]);
     scrollChatToBottom('smooth');
@@ -1582,10 +1587,15 @@ const ChatPage = () => {
       });
     }
 
+    // Stop button: aborting the fetch closes the stream, and the backend stops its model calls when it sees that
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const jwt = await getAccessToken();
       const endpoint = isGuest ? '/api/AI/guest' : isFollowUp ? '/api/AI/follow_up' : '/api/AI';
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        signal: controller.signal,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1596,11 +1606,11 @@ const ChatPage = () => {
             ? {
                 conversationId: activeConversationId,
                 query: prompt,
-                mode: deepMode ? 'deep' : 'quick',
+                mode,
               }
             : {
                 query: prompt,
-                mode: deepMode ? 'deep' : 'quick',
+                mode,
               },
         ),
       });
@@ -1650,6 +1660,19 @@ const ChatPage = () => {
       addStreamLog('Agent run complete', 'Answer, sources, and suggested prompts are ready.');
     } catch (error) {
       flushPendingAssistantText();
+      if (controller.signal.aborted) {
+        // Keep whatever was written before Stop instead of showing an error
+        finalizeAssistantText(assistantId);
+        setMessages((current) =>
+          current.map((chatMessage) =>
+            chatMessage.id === assistantId
+              ? { ...chatMessage, status: 'complete', content: chatMessage.content || '_Stopped before an answer was written._' }
+              : chatMessage,
+          ),
+        );
+        addStreamLog('Agent run stopped', 'Stopped by you.');
+        return;
+      }
       const message = error instanceof Error ? error.message : 'Unknown stream failure';
       setErrorMessage(message);
       setMessages((current) =>
@@ -1667,6 +1690,7 @@ const ChatPage = () => {
       );
       addStreamLog('Agent run failed', message);
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setSources((current) => current.map((source) => ({ ...source, status: 'ready' })));
       setIsStreaming(false);
       setStreamingConversationId(null);
@@ -1983,6 +2007,10 @@ const ChatPage = () => {
           </div>
 
           <div className="session-actions">
+            <Link className="panel-icon" title="How answer quality is measured" to="/evals">
+              <BarChart3 aria-hidden="true" size={16} />
+              <span>Evals</span>
+            </Link>
             <button
               aria-label={isRightPanelOpen ? 'Hide activity panel' : 'Show activity panel'}
               className="panel-icon"
@@ -2034,7 +2062,7 @@ const ChatPage = () => {
           </div>
         </header>
 
-        <section className="answer-window" aria-label="Agent response">
+        <section className={`answer-window ${isEmptyChat ? 'is-empty' : ''}`} aria-label="Agent response">
           <div className="answer-overlay">
             <section className={`thinking-panel ${isStreaming ? 'is-live' : ''}`} aria-label="Agent thinking">
               <div className="thinking-phase-row">
@@ -2094,6 +2122,36 @@ const ChatPage = () => {
                 <span className="message-role">Memory</span>
                 <p>Loading the selected chat...</p>
               </article>
+            ) : null}
+            {isEmptyChat ? (
+              <section className="empty-state" aria-labelledby="empty-title">
+                <BrandBadge alt="" aria-hidden="true" className="empty-state-badge" />
+                <h2 id="empty-title">Ask anything. Get an answer with sources.</h2>
+                <p>
+                  Gaminai searches the web, reads the pages and answers with numbered citations you can check.
+                  Switch to <strong>Deep</strong> for questions that need several searches.
+                </p>
+                <div className="starter-grid">
+                  {STARTERS.map((starter) => (
+                    <button
+                      key={starter.text}
+                      onClick={() => {
+                        setDeepMode(starter.mode === 'deep');
+                        void runPrompt(starter.text, starter.mode);
+                      }}
+                      type="button"
+                    >
+                      <small>
+                        {starter.mode === 'deep' ? <Telescope aria-hidden="true" size={12} /> : <Sparkles aria-hidden="true" size={12} />}
+                        {starter.hint}
+                        {starter.mode === 'deep' ? ' · Deep' : ''}
+                      </small>
+                      <span>{starter.text}</span>
+                    </button>
+                  ))}
+                </div>
+                <Link className="empty-state-link" to="/evals">How answer quality is measured →</Link>
+              </section>
             ) : null}
             {messages.map((message, index) => {
               const question = messages[index - 1]?.role === 'user' ? messages[index - 1].content : '';
@@ -2194,9 +2252,21 @@ const ChatPage = () => {
               <Telescope aria-hidden="true" size={14} />
               <span>{deepMode ? 'Deep' : 'Quick'}</span>
             </button>
-            <button className="composer-send" disabled={!canSubmit} type="submit">
-              <SendHorizontal aria-hidden="true" size={16} />
-            </button>
+            {isStreaming && streamingConversationId === activeConversationId ? (
+              <button
+                aria-label="Stop generating"
+                className="composer-send is-stop"
+                onClick={() => abortRef.current?.abort()}
+                title="Stop generating"
+                type="button"
+              >
+                <Square aria-hidden="true" fill="currentColor" size={12} />
+              </button>
+            ) : (
+              <button aria-label="Send" className="composer-send" disabled={!canSubmit} type="submit">
+                <SendHorizontal aria-hidden="true" size={16} />
+              </button>
+            )}
           </form>
         </div>
       </section>

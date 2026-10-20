@@ -6,7 +6,7 @@ import { GUEST_DAILY_LIMIT } from "../config";
 import { prisma } from "../db";
 import { authorize } from "../Middleware/authorize";
 import { asyncHandler, getRequestUserId } from "../lib/http";
-import { failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
+import { abortOnClose, failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
 import { startRequestLog } from "../lib/requestLog";
 import { slugify } from "../lib/text";
 import { prepareAnswer } from "../llm/answer";
@@ -37,10 +37,12 @@ function prepare(
   query: string,
   mode: "quick" | "deep",
   history: ChatMessage[] = [],
+  signal?: AbortSignal,
 ) {
   if (mode === "quick") return prepareAnswer(query, history);
   writeSseStatus(res, conversationId, "Planning research", "Breaking the question into searches.");
   return prepareDeepAnswer(query, history, {
+    signal,
     onStep: ({ index, tool, input, found }) =>
       writeSseStatus(
         res,
@@ -99,12 +101,17 @@ aiRouter.post(
     // Start SSE immediately so the user sees status updates during search
     setSseHeaders(res, conversation.id);
     const stopKeepAlive = startSseKeepAlive(res);
+    const signal = abortOnClose(res);
     writeSseStatus(res, conversation.id, "Agent run started", "Searching the web for sources.");
     const log = startRequestLog({ route: "ai", mode, userId, conversationId: conversation.id });
 
     try {
-      const prepared = await prepare(res, conversation.id, query, mode);
+      const prepared = await prepare(res, conversation.id, query, mode, [], signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
 
       writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -116,6 +123,7 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepCount(prepared),
+        signal,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
@@ -127,6 +135,10 @@ aiRouter.post(
         },
       });
     } catch (error) {
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
       console.error("AI stream preparation failed", error);
       log.finish({ ok: false, error: String((error as Error)?.message ?? error) });
       failSse(res, conversation.id, "Search or AI preparation failed");
@@ -152,12 +164,17 @@ aiRouter.post(
 
     setSseHeaders(res, conversationId);
     const stopKeepAlive = startSseKeepAlive(res);
+    const signal = abortOnClose(res);
     writeSseStatus(res, conversationId, "Agent run started", "Searching the web for sources.");
     const log = startRequestLog({ route: "guest", mode });
 
     try {
-      const prepared = await prepare(res, conversationId, query, mode);
+      const prepared = await prepare(res, conversationId, query, mode, [], signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
 
       writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
@@ -169,8 +186,13 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepCount(prepared),
+        signal,
       });
     } catch (error) {
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
       console.error("Guest stream preparation failed", error);
       log.finish({ ok: false, error: String((error as Error)?.message ?? error) });
       failSse(res, conversationId, "Search or AI preparation failed");
@@ -210,6 +232,7 @@ aiRouter.post(
 
     setSseHeaders(res, conversationId);
     const stopKeepAlive = startSseKeepAlive(res);
+    const signal = abortOnClose(res);
     writeSseStatus(
       res,
       conversationId,
@@ -245,8 +268,12 @@ aiRouter.post(
           }]
         : [];
 
-      const prepared = await prepare(res, conversationId, query, mode, history);
+      const prepared = await prepare(res, conversationId, query, mode, history, signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
       writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
 
       await streamAiResponse({
@@ -257,6 +284,7 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepCount(prepared),
+        signal,
         onComplete: async (content) => {
           await prisma.message.create({
             data: {
@@ -268,6 +296,10 @@ aiRouter.post(
         },
       });
     } catch (error) {
+      if (signal.aborted) {
+        log.finish({ ok: false, error: "stopped by client" });
+        return;
+      }
       console.error("Follow-up stream preparation failed", error);
       log.finish({ ok: false, error: String((error as Error)?.message ?? error) });
       failSse(res, conversationId, "Follow-up preparation failed");

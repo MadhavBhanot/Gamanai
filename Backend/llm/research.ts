@@ -51,12 +51,14 @@ export async function prepareDeepAnswer(
     chain = ANSWER_CHAIN,
     onStep,
     maxRetries = 2,
+    signal,
   }: {
     searcher?: typeof getWebSearchResults;
     mode?: ContextMode;
     chain?: ModelRef[];
     onStep?: (step: ResearchStep & { index: number }) => void;
     maxRetries?: number;
+    signal?: AbortSignal; // client disconnected: stop searching and calling the planner
   } = {},
 ): Promise<DeepPreparedAnswer> {
   const startedAt = performance.now();
@@ -74,6 +76,7 @@ export async function prepareDeepAnswer(
   async function gather(toolName: ResearchStep["tool"], input: string) {
     // Weaker planners repeat themselves; don't spend a Tavily credit on a query we already ran
     const key = input.trim().toLowerCase();
+    if (signal?.aborted) return "Stopped.";
     if (searched.has(key)) return "Already searched; use a different query or reply DONE.";
     searched.add(key);
     try {
@@ -129,7 +132,7 @@ export async function prepareDeepAnswer(
         tools,
         stopWhen,
         maxRetries,
-        abortSignal: AbortSignal.timeout(RESEARCH_TIMEOUT_MS),
+        abortSignal: signal ? AbortSignal.any([AbortSignal.timeout(RESEARCH_TIMEOUT_MS), signal]) : AbortSignal.timeout(RESEARCH_TIMEOUT_MS),
         providerOptions: providerOptionsFor(ref),
       });
       research.modelCalls += result.steps.length;
@@ -139,6 +142,7 @@ export async function prepareDeepAnswer(
       break;
     } catch (error) {
       lastError = error;
+      signal?.throwIfAborted();
       // Out of time or budget mid-loop: answer from what was already gathered
       if (contexts.length) {
         research.model = ref.label;
@@ -148,6 +152,7 @@ export async function prepareDeepAnswer(
     }
   }
   research.ms = performance.now() - startedAt;
+  signal?.throwIfAborted(); // the client left between steps: skip the fallback search and the answer prompt
 
   if (!contexts.length) {
     // The planner failed or never searched: fall back to the single-shot pipeline

@@ -1,6 +1,6 @@
 import { simulateReadableStream } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { generateAnswer } from "../llm/answer";
 import type { ModelRef } from "../llm/providers";
 
@@ -74,6 +74,17 @@ describe("generateAnswer provider fallback", () => {
         maxRetries: 0,
       }),
     ).rejects.toThrow(/mid-stream/);
+  });
+
+  it("does not fall back when the client stopped the request", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const backup = streamingModel("backup", ["should not run"]);
+    const backupStream = vi.spyOn(backup.model as MockLanguageModelV3, "doStream");
+    await expect(
+      generateAnswer(messages, undefined, { chain: [streamingModel("primary", ["x"]), backup], maxRetries: 0, signal: controller.signal }),
+    ).rejects.toThrow();
+    expect(backupStream).not.toHaveBeenCalled();
   });
 
   it("throws the last error when every model fails", async () => {

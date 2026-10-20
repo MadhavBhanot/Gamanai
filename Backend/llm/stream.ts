@@ -19,6 +19,7 @@ export async function streamAiResponse({
   onComplete,
   log,
   researchSteps,
+  signal,
 }: {
   res: express.Response;
   conversationId: string;
@@ -28,6 +29,7 @@ export async function streamAiResponse({
   onComplete?: (content: string) => Promise<void>;
   log?: RequestLogger;
   researchSteps?: number;
+  signal?: AbortSignal;
 }) {
   if (!res.headersSent) {
     setSseHeaders(res, conversationId);
@@ -39,8 +41,10 @@ export async function streamAiResponse({
   try {
     writeSse(res, { type: "response_start", conversationId });
 
-    const { content, model, ttftMs, promptTokens, completionTokens } = await generateAnswer(messages, (text) =>
-      writeSse(res, { type: "delta", text }),
+    const { content, model, ttftMs, promptTokens, completionTokens } = await generateAnswer(
+      messages,
+      (text) => writeSse(res, { type: "delta", text }),
+      { signal },
     );
     log?.finish({ ok: true, model, ttftMs, promptTokens, completionTokens, researchSteps, sourceCount: webSearchResponse.length });
 
@@ -57,6 +61,11 @@ export async function streamAiResponse({
 
     writeSse(res, { type: "response_end", conversationId });
   } catch (error) {
+    if (signal?.aborted) {
+      // The client left (Stop button); nobody is listening, so just record it
+      log?.finish({ ok: false, error: "stopped by client", researchSteps });
+      return;
+    }
     console.error("AI stream failed", error);
     log?.finish({ ok: false, error: String((error as Error)?.message ?? error), researchSteps });
     writeSse(res, {

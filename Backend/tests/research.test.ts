@@ -93,6 +93,21 @@ describe("prepareDeepAnswer", () => {
     expect(prepared.steps).toHaveLength(1); // the repeated query hit the searcher once
   });
 
+  it("stops without a fallback search when the client has gone", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    let searches = 0;
+    await expect(
+      prepareDeepAnswer("anything", [], {
+        searcher: async (q) => (searches++, searcher(q)),
+        mode: "snippets",
+        chain: [plannerModel([{ calls: [{ toolName: "web_search", input: { query: "x" } }] }])],
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow();
+    expect(searches).toBe(0);
+  });
+
   it("falls back to a single search when the planner never calls a tool", async () => {
     const prepared = await prepareDeepAnswer("simple question", [], {
       searcher,

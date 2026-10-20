@@ -87,7 +87,7 @@ export async function answerMessages(
 export async function generateAnswer(
   messages: ChatMessage[],
   onDelta?: (text: string) => void,
-  { chain = ANSWER_CHAIN, maxRetries = 1 }: { chain?: ModelRef[]; maxRetries?: number } = {},
+  { chain = ANSWER_CHAIN, maxRetries = 1, signal }: { chain?: ModelRef[]; maxRetries?: number; signal?: AbortSignal } = {},
 ): Promise<AnswerResult> {
   let lastError: unknown = new Error("No answer models configured");
 
@@ -102,7 +102,7 @@ export async function generateAnswer(
         messages,
         maxOutputTokens: 1500,
         maxRetries,
-        abortSignal: AbortSignal.timeout(ANSWER_TIMEOUT_MS),
+        abortSignal: signal ? AbortSignal.any([AbortSignal.timeout(ANSWER_TIMEOUT_MS), signal]) : AbortSignal.timeout(ANSWER_TIMEOUT_MS),
         providerOptions: providerOptionsFor(ref),
         onError: () => {}, // errors surface as "error" parts below; the SDK default would also console.error them
       });
@@ -125,7 +125,8 @@ export async function generateAnswer(
       if (!content.trim()) throw new Error(`${ref.label} returned an empty answer`);
       return { content, model: ref.label, promptTokens, completionTokens, ttftMs, totalMs: performance.now() - startedAt };
     } catch (error) {
-      if (content) throw error;
+      // Stopped by the client: don't wake the next model in the chain
+      if (content || signal?.aborted) throw error;
       lastError = error;
       if (ref !== chain[chain.length - 1]) {
         console.warn(`[llm] ${ref.label} failed, falling back: ${String((error as Error)?.message ?? error).slice(0, 200)}`);
