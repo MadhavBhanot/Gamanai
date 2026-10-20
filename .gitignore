@@ -10,8 +10,9 @@ Backend/generated/
 Preqz/
 *.exe
 
-# docs stay local
+# docs stay local, except the public README at the repo root
 *.md
+!/README.md
 .claude/
 Backend/evals/results/.checkpoint_*
 # personal resume drafts (phone number etc.)
