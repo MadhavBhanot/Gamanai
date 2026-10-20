@@ -10,7 +10,7 @@ import { abortOnClose, failSse, setSseHeaders, startSseKeepAlive, writeSseStatus
 import { startRequestLog } from "../lib/requestLog";
 import { slugify } from "../lib/text";
 import { prepareAnswer } from "../llm/answer";
-import { prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
+import { describeStep, prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
 import { streamAiResponse, type ChatMessage } from "../llm/stream";
 
 // "deep" runs the research agent loop before answering; "quick" is the single-search pipeline
@@ -43,13 +43,10 @@ function prepare(
   writeSseStatus(res, conversationId, "Planning research", "Breaking the question into searches.");
   return prepareDeepAnswer(query, history, {
     signal,
-    onStep: ({ index, tool, input, found }) =>
-      writeSseStatus(
-        res,
-        conversationId,
-        `Research step ${index}: ${tool === "extract_url" ? "read page" : "search"}`,
-        `${input} (${found} new passage${found === 1 ? "" : "s"})`,
-      ),
+    onStep: (step) => {
+      const { label, detail } = describeStep(step, step.index);
+      writeSseStatus(res, conversationId, label, detail);
+    },
   });
 }
 
@@ -61,7 +58,7 @@ const guestLimiter = rateLimit({
   message: { error: `Guest demo is limited to ${GUEST_DAILY_LIMIT} questions per day. Sign in for more.` },
 });
 
-const stepCount = (prepared: Partial<DeepPreparedAnswer>) => prepared.steps?.length;
+const stepsOf = (prepared: Partial<DeepPreparedAnswer>) => prepared.steps;
 
 function sourceCountLabel(count: number, prefix = "") {
   return `${count} ${prefix}source${count === 1 ? "" : "s"} found.`;
@@ -122,7 +119,7 @@ aiRouter.post(
         messages,
         contexts,
         log,
-        researchSteps: stepCount(prepared),
+        researchSteps: stepsOf(prepared),
         signal,
         onComplete: async (content) => {
           await prisma.message.create({
@@ -185,7 +182,7 @@ aiRouter.post(
         messages,
         contexts,
         log,
-        researchSteps: stepCount(prepared),
+        researchSteps: stepsOf(prepared),
         signal,
       });
     } catch (error) {
@@ -283,7 +280,7 @@ aiRouter.post(
         messages,
         contexts,
         log,
-        researchSteps: stepCount(prepared),
+        researchSteps: stepsOf(prepared),
         signal,
         onComplete: async (content) => {
           await prisma.message.create({

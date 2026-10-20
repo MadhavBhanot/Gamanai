@@ -1475,6 +1475,11 @@ h2 {
   background: linear-gradient(to top, rgba(10, 14, 26, 0.7) 0%, transparent 100%);
 }
 
+/* The strip floats over the thread; leave room so the last answer's actions aren't covered */
+.answer-window.has-followups .chat-thread {
+  padding-bottom: 112px;
+}
+
 .inline-followups.bottom-followups * {
   pointer-events: auto;
 }

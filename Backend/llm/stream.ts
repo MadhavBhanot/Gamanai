@@ -3,6 +3,7 @@ import type { RequestLogger } from "../lib/requestLog";
 import { setSseHeaders, writeSse } from "../lib/sse";
 import type { WebSearchResult } from "../retrieval/search";
 import { generateAnswer } from "./answer";
+import { describeStep, type ResearchStep } from "./research";
 import type { SourceContext } from "./buildPrompt";
 
 export type ChatMessage = {
@@ -28,7 +29,7 @@ export async function streamAiResponse({
   contexts?: SourceContext[];
   onComplete?: (content: string) => Promise<void>;
   log?: RequestLogger;
-  researchSteps?: number;
+  researchSteps?: ResearchStep[];
   signal?: AbortSignal;
 }) {
   if (!res.headersSent) {
@@ -46,7 +47,7 @@ export async function streamAiResponse({
       (text) => writeSse(res, { type: "delta", text }),
       { signal },
     );
-    log?.finish({ ok: true, model, ttftMs, promptTokens, completionTokens, researchSteps, sourceCount: webSearchResponse.length });
+    log?.finish({ ok: true, model, ttftMs, promptTokens, completionTokens, researchSteps: researchSteps?.length, sourceCount: webSearchResponse.length });
 
     // [n] in the answer refers to contexts[n-1]; ship the mapping as the last chunk and persist it with the
     // message so citations still link after a reload.
@@ -55,19 +56,26 @@ export async function streamAiResponse({
       : "";
     if (citations) writeSse(res, { type: "delta", text: citations });
 
+    // Deep mode's steps are saved (not streamed: the client already showed them live) so the trace survives a reload
+    const traceLines = (researchSteps ?? []).map((step, i) => {
+      const { label, detail } = describeStep(step, i + 1);
+      return `${label}: ${detail}`;
+    });
+    const trace = traceLines.length ? `\n<RESEARCH>${JSON.stringify(traceLines)}</RESEARCH>` : "";
+
     if (content.trim() && onComplete) {
-      await onComplete(content + citations);
+      await onComplete(content + citations + trace);
     }
 
     writeSse(res, { type: "response_end", conversationId });
   } catch (error) {
     if (signal?.aborted) {
       // The client left (Stop button); nobody is listening, so just record it
-      log?.finish({ ok: false, error: "stopped by client", researchSteps });
+      log?.finish({ ok: false, error: "stopped by client", researchSteps: researchSteps?.length });
       return;
     }
     console.error("AI stream failed", error);
-    log?.finish({ ok: false, error: String((error as Error)?.message ?? error), researchSteps });
+    log?.finish({ ok: false, error: String((error as Error)?.message ?? error), researchSteps: researchSteps?.length });
     writeSse(res, {
       type: "error",
       error: "AI response failed",

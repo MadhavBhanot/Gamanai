@@ -2,7 +2,9 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import {
   BarChart3,
+  Check,
   ChevronDown,
+  Copy,
   ExternalLink,
   LogOut,
   MoreHorizontal,
@@ -238,18 +240,34 @@ const parseCitations = (rawContent: string): Array<{ url: string; title: string 
   }
 };
 
+// Deep answers are saved with <RESEARCH>["Research step 1: search: ...", ...]</RESEARCH> so the trace survives reloads
+const RESEARCH_PATTERN = /<RESEARCH>([\s\S]*?)(?:<\/RESEARCH>|$)/i;
+
+const parseResearchSteps = (rawContent: string): string[] | undefined => {
+  const json = rawContent.match(RESEARCH_PATTERN)?.[1];
+  if (!json) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed.filter((s): s is string => typeof s === 'string') : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 /** Turn [n] markers into markdown links to their source; MarkdownText renders numeric links as citation chips. */
 const linkCitations = (answer: string, citations: Array<{ url: string; title: string }>) =>
   citations.length
     ? answer.replace(/\[(\d{1,2})\](?!\()/g, (marker, n: string) => {
         const source = citations[Number(n) - 1];
-        return source?.url.startsWith('http') ? `[${n}](${source.url})` : marker;
+        // Encode parens (e.g. Wikipedia's Oppenheimer_(film)) or the markdown link ends at the first ")"
+        return source?.url.startsWith('http') ? `[${n}](${source.url.replace(/\(/g, '%28').replace(/\)/g, '%29')})` : marker;
       })
     : answer;
 
 const stripAssistantNoise = (value: string) =>
   value
     .replace(CITATIONS_PATTERN, '')
+    .replace(RESEARCH_PATTERN, '')
     .replace(/(?:^|\n)\s*(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*(?=\n|$)/gi, '\n')
     .replace(/^(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*/i, '')
     .replace(/\n{3,}/g, '\n\n');
@@ -407,6 +425,7 @@ const normalizeConversationMessages = (
         content: answer || cleanAssistantDisplayContent(rawContent),
         rawContent,
         thinkContent,
+        researchSteps: parseResearchSteps(rawContent),
         status: 'complete',
       });
       continue;
@@ -647,6 +666,7 @@ const AssistantMessageBody = ({
   onImageClick?: (src: string, alt?: string) => void;
 }) => {
   const researchSteps = message.researchSteps ?? [];
+  const searchCount = researchSteps.filter((step) => step.startsWith('Research step')).length;
   const hasThinkContent = Boolean(message.thinkContent?.trim()) || researchSteps.length > 0;
   const [isThinkOpen, setIsThinkOpen] = useState(false);
 
@@ -680,7 +700,7 @@ const AssistantMessageBody = ({
           >
             <span>
               {researchSteps.length
-                ? `Research trace · ${researchSteps.length} step${researchSteps.length === 1 ? '' : 's'}`
+                ? `Research trace · ${searchCount} step${searchCount === 1 ? '' : 's'}`
                 : message.status === 'streaming' ? 'Thinking trace' : 'Reasoning trace'}
             </span>
             <ChevronDown className="collapse-icon" size={14} />
@@ -756,7 +776,20 @@ const ChatPage = () => {
   const [sourcesCollapsed, setSourcesCollapsed] = useState(false);
   const [suggestedPromptsCollapsed, setSuggestedPromptsCollapsed] = useState(false);
   // Deep research: the backend plans several searches before answering, streamed as "Research step" statuses
-  const [deepMode, setDeepMode] = useState(false);
+  const [deepMode, setDeepMode] = useState(() => {
+    try {
+      return localStorage.getItem('gaminai_mode') === 'deep';
+    } catch {
+      return false; // storage blocked (private mode): default to Quick
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('gaminai_mode', deepMode ? 'deep' : 'quick');
+    } catch {
+      // not worth surfacing; the toggle still works for this visit
+    }
+  }, [deepMode]);
   const abortRef = useRef<AbortController | null>(null);
   const [openConversationMenuId, setOpenConversationMenuId] = useState<string | null>(null);
   const [conversationPendingDelete, setConversationPendingDelete] =
@@ -1165,6 +1198,17 @@ const ChatPage = () => {
     setSources(sourcesByConversation[activeConversationId] ?? []);
   }, [activeConversationId, sourcesByConversation]);
 
+  const [copiedMessageId, setCopiedMessageId] = useState('');
+  const copyAnswer = async (message: ChatMessage) => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopiedMessageId(message.id);
+      window.setTimeout(() => setCopiedMessageId((current) => (current === message.id ? '' : current)), 1500);
+    } catch {
+      setErrorMessage('Could not copy: your browser blocked clipboard access.');
+    }
+  };
+
   // Thumbs up/down: stored server-side with the question and answer text, so guest answers can be rated too
   const [ratings, setRatings] = useState<Record<string, 1 | -1>>({});
   const rateAnswer = async (message: ChatMessage, question: string, rating: 1 | -1) => {
@@ -1456,6 +1500,7 @@ const ChatPage = () => {
 
     if (event.type === 'status') {
       if (event.conversationId) {
+        setStreamingConversationId(event.conversationId); // status events only arrive mid-stream
         setActiveConversationId(event.conversationId);
         activeConversationRef.current = event.conversationId;
         lastLoadedConversationIdRef.current = event.conversationId;
@@ -1622,6 +1667,9 @@ const ChatPage = () => {
 
       const responseConversationId = response.headers.get('X-Conversation-ID');
       if (responseConversationId) {
+        // A new chat streams under null until the server names it; follow the rename or the composer
+        // re-enables (and Stop disappears) mid-answer
+        setStreamingConversationId(responseConversationId);
         setActiveConversationId(responseConversationId);
         activeConversationRef.current = responseConversationId;
         lastLoadedConversationIdRef.current = responseConversationId;
@@ -2062,7 +2110,10 @@ const ChatPage = () => {
           </div>
         </header>
 
-        <section className={`answer-window ${isEmptyChat ? 'is-empty' : ''}`} aria-label="Agent response">
+        <section
+          aria-label="Agent response"
+          className={`answer-window ${isEmptyChat ? 'is-empty' : ''} ${suggestedPrompts.length > 0 && !suggestedPromptsCollapsed ? 'has-followups' : ''}`}
+        >
           <div className="answer-overlay">
             <section className={`thinking-panel ${isStreaming ? 'is-live' : ''}`} aria-label="Agent thinking">
               <div className="thinking-phase-row">
@@ -2155,7 +2206,8 @@ const ChatPage = () => {
             ) : null}
             {messages.map((message, index) => {
               const question = messages[index - 1]?.role === 'user' ? messages[index - 1].content : '';
-              const canRate = message.role === 'assistant' && message.status === 'complete' && question && message.content;
+              const isDone = message.role === 'assistant' && message.status === 'complete' && Boolean(message.content);
+              const canRate = isDone && Boolean(question);
               return (
                 <article className={`message ${message.role}`} key={message.id}>
                   <span className="message-role">{message.role === 'user' ? 'You' : 'Gaminai'}</span>
@@ -2165,9 +2217,17 @@ const ChatPage = () => {
                     <p>{message.content}</p>
                   )}
                   {message.status === 'streaming' ? <span className="typing-bar" /> : null}
-                  {canRate ? (
+                  {isDone ? (
                     <div className="message-feedback">
-                      {([1, -1] as const).map((rating) => (
+                      <button
+                        aria-label={copiedMessageId === message.id ? 'Copied' : 'Copy answer'}
+                        onClick={() => void copyAnswer(message)}
+                        title={copiedMessageId === message.id ? 'Copied' : 'Copy answer'}
+                        type="button"
+                      >
+                        {copiedMessageId === message.id ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
+                      </button>
+                      {canRate && ([1, -1] as const).map((rating) => (
                         <button
                           aria-label={rating === 1 ? 'Good answer' : 'Bad answer'}
                           aria-pressed={ratings[message.id] === rating}
