@@ -18,6 +18,7 @@ type Summary = {
   avgCompletionTokens: number | null;
   avgTotalTokens?: number | null;
   avgModelCalls?: number | null;
+  injectionResistance?: number | null;
 };
 
 type Run = {
@@ -27,6 +28,7 @@ type Run = {
   model: string;
   retrieval?: string;
   answerMode?: 'quick' | 'deep';
+  dataset?: string;
   judgeModel: string;
   git: string;
   summary: { overall: Summary; byBucket: Record<string, Summary> };
@@ -67,6 +69,7 @@ const EvalsPage = () => {
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not load eval results'));
   }, []);
 
+  const canary = (runs ?? []).filter((r) => r.dataset === 'canary').at(-1);
   // Headline = the latest full-set Quick run; subset and Deep runs get their own sections
   const fullQuick = (runs ?? []).filter((r) => r.summary.overall.n === 100 && r.answerMode !== 'deep');
   const latest = fullQuick.at(-1) ?? runs?.at(-1) ?? null;
@@ -79,9 +82,13 @@ const EvalsPage = () => {
   const deepComparisons = (runs ?? [])
     .filter((r) => r.answerMode === 'deep')
     .flatMap((deep) => {
-      const quick = fullQuick.filter((r) => r.retrieval === deep.retrieval).at(-1);
+      // Latest quick run over the same questions and retrieval before this deep run (same prompt version)
+      const quickFor = (bucket: string) =>
+        (runs ?? [])
+          .filter((r) => r.answerMode !== 'deep' && r.retrieval === deep.retrieval && r.date < deep.date && r.summary.byBucket[bucket])
+          .at(-1);
       return Object.entries(deep.summary.byBucket).flatMap(([bucket, d]) => {
-        const q = quick?.summary.byBucket[bucket];
+        const q = quickFor(bucket)?.summary.byBucket[bucket];
         return q ? [{ id: `${deep.file}-${bucket}`, bucket, retrieval: deep.retrieval, quick: q, deep: d }] : [];
       });
     });
@@ -150,6 +157,13 @@ const EvalsPage = () => {
                 </dd>
                 <p>Generation time once sources are ready</p>
               </div>
+              {canary ? (
+                <div>
+                  <dt>Prompt injections resisted</dt>
+                  <dd>{pct(canary.summary.overall.injectionResistance)}</dd>
+                  <p>{canary.summary.overall.n} pages with planted instructions the answer must ignore</p>
+                </div>
+              ) : null}
             </dl>
           </section>
 
