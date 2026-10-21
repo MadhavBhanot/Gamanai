@@ -1,4 +1,5 @@
-import type { ReactNode, SyntheticEvent } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type SyntheticEvent } from 'react';
+import { createPortal } from 'react-dom';
 
 type MarkdownTextProps = {
   content: string;
@@ -91,6 +92,102 @@ const hostOf = (url: string) => {
   } catch {
     return url;
   }
+};
+
+const PREVIEW_GAP = 8;
+const PREVIEW_MAX_WIDTH = 300;
+
+type PreviewPosition = { left: number; top: number; width: number; above: boolean };
+
+/**
+ * [n] chip with a source preview. The preview is portaled to <body> with fixed coordinates, so the chat panels'
+ * overflow and backdrop-filter can't clip it, and it is clamped inside the viewport (chips near the left edge).
+ * Mouse: hover or keyboard focus shows it. Touch: the first tap shows it, a second tap (or "Open source") opens it.
+ */
+const CitationChip = ({ n, href, title, passage }: { n: string; href: string; title?: string; passage?: string }) => {
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const previewRef = useRef<HTMLSpanElement>(null);
+  const pointerType = useRef('mouse');
+  const [position, setPosition] = useState<PreviewPosition | null>(null);
+
+  const show = () => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const width = Math.min(PREVIEW_MAX_WIDTH, window.innerWidth - PREVIEW_GAP * 2);
+    const centered = rect.left + rect.width / 2 - width / 2;
+    setPosition({
+      left: Math.min(Math.max(PREVIEW_GAP, centered), window.innerWidth - width - PREVIEW_GAP),
+      // Below the chip when there isn't room above (top of the scroll area)
+      above: rect.top > 200,
+      top: rect.top > 200 ? rect.top - PREVIEW_GAP : rect.bottom + PREVIEW_GAP,
+      width,
+    });
+  };
+  const hide = () => setPosition(null);
+
+  useEffect(() => {
+    if (!position) return;
+    // A fixed preview would drift away from its chip while the chat scrolls; a tap elsewhere dismisses it
+    const onOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!anchorRef.current?.contains(target) && !previewRef.current?.contains(target)) hide();
+    };
+    window.addEventListener('scroll', hide, true);
+    window.addEventListener('resize', hide);
+    document.addEventListener('pointerdown', onOutside);
+    return () => {
+      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('resize', hide);
+      document.removeEventListener('pointerdown', onOutside);
+    };
+  }, [position]);
+
+  return (
+    <sup className="citation">
+      <a
+        aria-label={`Source ${n}${title ? `: ${title}` : ''}`}
+        href={href}
+        onBlur={() => pointerType.current === 'mouse' && hide()}
+        onClick={(event) => {
+          if (pointerType.current !== 'mouse' && !position) {
+            event.preventDefault();
+            show();
+          }
+        }}
+        onFocus={show}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onPointerDown={(event) => {
+          pointerType.current = event.pointerType;
+        }}
+        ref={anchorRef}
+        rel="noreferrer"
+        target="_blank"
+      >
+        {n}
+      </a>
+      {position
+        ? createPortal(
+            <span
+              className={`citation-preview${position.above ? ' is-above' : ''}`}
+              ref={previewRef}
+              role="tooltip"
+              style={{ left: position.left, top: position.top, width: position.width }}
+            >
+              {title ? <strong>{title}</strong> : null}
+              <span className="citation-preview-host">{hostOf(href)}</span>
+              {passage ? <span className="citation-preview-text">{passage}</span> : null}
+              {pointerType.current !== 'mouse' ? (
+                <a className="citation-preview-open" href={href} rel="noreferrer" target="_blank">
+                  Open source ↗
+                </a>
+              ) : null}
+            </span>,
+            document.body,
+          )
+        : null}
+    </sup>
+  );
 };
 
 export const hideBrokenImage = (event: SyntheticEvent<HTMLImageElement>) => {
@@ -188,16 +285,7 @@ const renderInline = (
       // [n](url "title|passage") comes from inline source citations; the title feeds the hover preview
       const [title, passage] = (link[3] ?? '').split('|');
       nodes.push(
-        <sup className="citation" key={`${keyPrefix}-cite-${match.index}`}>
-          <a aria-label={`Source ${link[1]}${title ? `: ${title}` : ''}`} href={link[2]} rel="noreferrer" target="_blank">
-            {link[1]}
-          </a>
-          <span className="citation-preview" role="tooltip">
-            {title ? <strong>{title}</strong> : null}
-            <span className="citation-preview-host">{hostOf(link[2])}</span>
-            {passage ? <span className="citation-preview-text">{passage}</span> : null}
-          </span>
-        </sup>,
+        <CitationChip href={link[2]} key={`${keyPrefix}-cite-${match.index}`} n={link[1]} passage={passage} title={title} />,
       );
     } else if (link) {
       nodes.push(

@@ -2758,18 +2758,13 @@ h2 {
   color: var(--accent-ink);
 }
 
-/* Hover/focus preview of the cited source */
-.citation {
-  position: relative;
-}
-
+/* Source preview: portaled to <body>, placed by CitationChip (left/top/width inline), so panels can't clip it */
 .citation-preview {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  z-index: 30;
-  display: none;
-  width: min(300px, 80vw);
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  gap: 4px;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid var(--accent-soft);
   border-radius: 10px;
@@ -2783,14 +2778,20 @@ h2 {
   line-height: 1.45;
   text-align: left;
   white-space: normal;
-  transform: translateX(-50%);
-  pointer-events: none;
 }
 
-.citation:hover .citation-preview,
-.citation:focus-within .citation-preview {
-  display: grid;
-  gap: 4px;
+/* Anchored at the chip's top edge, growing upward */
+.citation-preview.is-above {
+  transform: translateY(-100%);
+}
+
+.citation-preview-open {
+  justify-self: start;
+  margin-top: 2px;
+  padding: 6px 0;
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .citation-preview strong,
