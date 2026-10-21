@@ -12,6 +12,7 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  Plug,
   Plus,
   Search,
   SendHorizontal,
@@ -26,6 +27,7 @@ import { Link, useNavigate } from 'react-router';
 import BrandBadge from '../components/BrandBadge';
 import MarkdownText, { hideBrokenImage } from '../components/MarkdownText';
 import ImageModal from '../components/ImageModal';
+import McpSetupModal from '../components/McpSetupModal';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { isGuestMode } from '../lib/guest';
 import { API_BASE_URL } from '../lib/api';
@@ -816,6 +818,7 @@ const ChatPage = () => {
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(startsWide);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(startsWide);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMcpOpen, setIsMcpOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [conversationFilter, setConversationFilter] = useState('');
@@ -2169,6 +2172,17 @@ const ChatPage = () => {
                   <div className="user-popover" role="menu">
                     <small>Signed in as</small>
                     <strong>{userProfile.email}</strong>
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        setIsMcpOpen(true);
+                      }}
+                      role="menuitem"
+                      type="button"
+                    >
+                      <Plug aria-hidden="true" size={16} />
+                      <span>Use in Claude / Cursor (MCP)</span>
+                    </button>
                     <button onClick={signOut} role="menuitem" type="button">
                       <LogOut aria-hidden="true" size={16} />
                       <span>Log out</span>
@@ -2478,6 +2492,7 @@ const ChatPage = () => {
         </section>
 
       </aside>
+      {isMcpOpen ? <McpSetupModal onClose={() => setIsMcpOpen(false)} /> : null}
     </main>
   );
 };

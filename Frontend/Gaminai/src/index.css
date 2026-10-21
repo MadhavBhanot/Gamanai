@@ -2861,3 +2861,138 @@ h2 {
   -webkit-line-clamp: 4;
   color: var(--text-soft);
 }
+
+/* MCP setup dialog (native <dialog>, opened from the user menu) */
+.mcp-dialog {
+  /* the global reset zeroes margins; a modal <dialog> centres itself with margin: auto */
+  margin: auto;
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+
+.mcp-dialog::backdrop {
+  background: rgba(4, 7, 14, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.mcp-dialog-body {
+  display: grid;
+  gap: 16px;
+  padding: 20px 22px 22px;
+}
+
+.mcp-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mcp-dialog-head h2 {
+  margin: 4px 0 0;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.mcp-close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.mcp-close:hover,
+.mcp-close:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.mcp-lede,
+.mcp-steps {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.mcp-steps {
+  display: grid;
+  gap: 10px;
+  padding-left: 20px;
+}
+
+.mcp-steps a {
+  color: var(--accent-strong);
+}
+
+.mcp-steps label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.mcp-steps input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.mcp-steps input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mcp-dialog code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.mcp-config {
+  position: relative;
+}
+
+.mcp-config pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  line-height: 1.5;
+}
+
+.mcp-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
