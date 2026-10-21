@@ -2,9 +2,12 @@ import { streamText } from "ai";
 import { truncateText } from "../lib/text";
 import { SYSTEM_PROMPT } from "../prompt";
 import { indexPages, retrieveChunks, type RetrievalMode } from "../retrieval/hybrid";
+import { indexFirstEnabled, isIndexConfident, searchIndex } from "../retrieval/indexFirst";
+import { buildQueryOptimizationContext } from "../retrieval/query";
 import { liveImageUrls } from "../retrieval/images";
 import { getWebSearchResults, type WebSearchResult } from "../retrieval/search";
 import { buildPrompt, type SourceContext } from "./buildPrompt";
+import { isCacheable } from "./cache";
 import { ANSWER_CHAIN, providerOptionsFor, type ModelRef } from "./providers";
 import type { ChatMessage } from "./stream";
 
@@ -61,6 +64,36 @@ export async function prepareAnswer(
 }
 
 export type PreparedAnswer = Awaited<ReturnType<typeof prepareAnswer>>;
+
+/**
+ * Answer from passages stored by earlier searches when they clearly cover the question; null means "search the web".
+ * Time-sensitive and URL questions always go to the web, and any failure (e.g. embedding quota) falls through.
+ */
+export async function answerFromIndex(query: string, history: ChatMessage[] = []) {
+  if (!indexFirstEnabled() || !isCacheable(query)) return null;
+  const startedAt = performance.now();
+  let chunks;
+  try {
+    chunks = await searchIndex(query);
+  } catch (error) {
+    console.warn(`[index-first] skipped: ${String((error as Error)?.message ?? error).slice(0, 160)}`);
+    return null;
+  }
+  if (!isIndexConfident(chunks)) return null;
+
+  const contexts: SourceContext[] = chunks.map((c) => ({ url: c.url, title: c.title, text: c.content }));
+  // One source card per page, scored by its best passage
+  const results: WebSearchResult[] = [...new Map(chunks.map((c) => [c.url, c])).values()].map((c) => ({
+    title: c.title,
+    url: c.url,
+    content: truncateText(c.content, 300),
+    score: c.similarity,
+    sourceType: "search",
+  }));
+  const search = { queryContext: buildQueryOptimizationContext(query), results, images: [] as string[] };
+  const messages = await answerMessages(search, contexts, history);
+  return { ...search, contexts, contextMode: "index" as const, retrievalMs: performance.now() - startedAt, messages };
+}
 
 /** The answer model's input: system prompt, history, then the numbered sources and the query. */
 export async function answerMessages(

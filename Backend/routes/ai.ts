@@ -9,7 +9,7 @@ import { asyncHandler, getRequestUserId } from "../lib/http";
 import { abortOnClose, failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
 import { startRequestLog } from "../lib/requestLog";
 import { slugify } from "../lib/text";
-import { prepareAnswer } from "../llm/answer";
+import { answerFromIndex, prepareAnswer } from "../llm/answer";
 import { describeStep, prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
 import { lookupCachedAnswer, storeCachedAnswer } from "../llm/cache";
 import { standaloneQuery } from "../llm/contextualize";
@@ -38,7 +38,7 @@ const guestRequestSchema = z.object({
 });
 
 /** Quick or deep preparation; deep streams each research step as a status event. */
-function prepare(
+async function prepare(
   res: Response,
   conversationId: string,
   query: string,
@@ -46,7 +46,15 @@ function prepare(
   history: ChatMessage[] = [],
   signal?: AbortSignal,
 ) {
-  if (mode === "quick") return prepareAnswer(query, history);
+  if (mode === "quick") {
+    // Passages saved from earlier searches first; the web only when they don't clearly cover the question
+    const fromIndex = await answerFromIndex(query, history);
+    if (fromIndex) {
+      writeSseStatus(res, conversationId, "Found in saved sources", `${fromIndex.contexts.length} stored passages match; skipping web search.`);
+      return fromIndex;
+    }
+    return prepareAnswer(query, history);
+  }
   writeSseStatus(res, conversationId, "Planning research", "Breaking the question into searches.");
   return prepareDeepAnswer(query, history, {
     signal,
@@ -65,7 +73,7 @@ const guestLimiter = rateLimit({
   message: { error: `Guest demo is limited to ${GUEST_DAILY_LIMIT} questions per day. Sign in for more.` },
 });
 
-const stepsOf = (prepared: Partial<DeepPreparedAnswer>) => prepared.steps;
+const stepsOf = (prepared: object) => ("steps" in prepared ? (prepared as DeepPreparedAnswer).steps : undefined);
 
 function sourceCountLabel(count: number, prefix = "") {
   return `${count} ${prefix}source${count === 1 ? "" : "s"} found.`;
@@ -106,7 +114,7 @@ aiRouter.post(
     setSseHeaders(res, conversation.id);
     const stopKeepAlive = startSseKeepAlive(res);
     const signal = abortOnClose(res);
-    writeSseStatus(res, conversation.id, "Agent run started", "Searching the web for sources.");
+    writeSseStatus(res, conversation.id, "Agent run started", "Looking for sources.");
     const log = startRequestLog({ route: "ai", mode, userId, conversationId: conversation.id });
 
     try {
@@ -124,7 +132,7 @@ aiRouter.post(
         return;
       }
 
-      writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
+      if (prepared.contextMode !== "index") writeSseStatus(res, conversation.id, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
       await streamAiResponse({
         res,
@@ -177,7 +185,7 @@ aiRouter.post(
     setSseHeaders(res, conversationId);
     const stopKeepAlive = startSseKeepAlive(res);
     const signal = abortOnClose(res);
-    writeSseStatus(res, conversationId, "Agent run started", "Searching the web for sources.");
+    writeSseStatus(res, conversationId, "Agent run started", "Looking for sources.");
     const log = startRequestLog({ route: "guest", mode });
 
     try {
@@ -197,7 +205,7 @@ aiRouter.post(
         return;
       }
 
-      writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
+      if (prepared.contextMode !== "index") writeSseStatus(res, conversationId, "Web search complete", sourceCountLabel(webSearchResponse.length));
 
       await streamAiResponse({
         res,
@@ -303,7 +311,7 @@ aiRouter.post(
         log.finish({ ok: false, error: "stopped by client" });
         return;
       }
-      writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
+      if (prepared.contextMode !== "index") writeSseStatus(res, conversationId, "Web search ready", sourceCountLabel(webSearchResponse.length, "fresh "));
 
       await streamAiResponse({
         res,
