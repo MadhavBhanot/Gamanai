@@ -1588,7 +1588,7 @@ const ChatPage = () => {
       return;
     }
 
-    // Guests get single-shot answers: nothing is persisted server-side to follow up on.
+    // Guests have no saved conversation: each request goes to /guest with the recent turns as history.
     const isFollowUp = !isGuest && Boolean(activeConversationId);
     const userMessage: ChatMessage = {
       id: makeId('user'),
@@ -1662,6 +1662,15 @@ const ChatPage = () => {
             : {
                 query: prompt,
                 mode,
+                // Guests aren't saved server-side; recent turns let "what was their lineup?" resolve "their"
+                ...(isGuest
+                  ? {
+                      history: messages
+                        .filter((m) => m.role !== 'system' && m.status === 'complete' && m.content.trim())
+                        .slice(-6)
+                        .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) })),
+                    }
+                  : {}),
               },
         ),
       });

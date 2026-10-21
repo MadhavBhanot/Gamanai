@@ -6,7 +6,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "eval": "ts-node --transpile-only evals/run.ts",
-    "mcp": "ts-node --transpile-only mcp.ts"
+    "mcp": "ts-node --transpile-only mcp.ts",
+    "eval:followups": "ts-node --transpile-only evals/followups.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.135",

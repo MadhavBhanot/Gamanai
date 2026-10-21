@@ -12,6 +12,7 @@ import { slugify } from "../lib/text";
 import { prepareAnswer } from "../llm/answer";
 import { describeStep, prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
 import { lookupCachedAnswer, storeCachedAnswer } from "../llm/cache";
+import { standaloneQuery } from "../llm/contextualize";
 import { replayCachedAnswer, streamAiResponse, type ChatMessage } from "../llm/stream";
 
 // "deep" runs the research agent loop before answering; "quick" is the single-search pipeline
@@ -29,6 +30,11 @@ const followUpRequestSchema = aiRequestSchema.extend({
 const guestRequestSchema = z.object({
   query: z.string().trim().min(1, "query is required").max(500, "query is too long"),
   mode: answerMode,
+  // Guests have nothing saved server-side, so the client sends the recent turns for follow-up questions
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) }))
+    .max(8)
+    .default([]),
 });
 
 /** Quick or deep preparation; deep streams each research step as a status event. */
@@ -165,7 +171,7 @@ aiRouter.post(
       return;
     }
 
-    const { query, mode } = parsed.data;
+    const { query: asked, mode, history } = parsed.data;
     const conversationId = `guest-${crypto.randomUUID()}`;
 
     setSseHeaders(res, conversationId);
@@ -175,6 +181,9 @@ aiRouter.post(
     const log = startRequestLog({ route: "guest", mode });
 
     try {
+      const query = await standaloneQuery(asked, history, { signal });
+      if (query !== asked) writeSseStatus(res, conversationId, "Understood as", query);
+      // Keyed on the resolved question, so "what was their lineup?" can't replay another chat's answer
       const cache = await lookupCachedAnswer(query, mode);
       if (cache.hit) {
         replayCachedAnswer(res, conversationId, cache.hit, log);
@@ -272,6 +281,10 @@ aiRouter.post(
         "Searching the web",
         "Extracting any referenced URLs and collecting fresh sources.",
       );
+      const turns = conversation.messages.map((m) => ({ role: m.role === "USER" ? ("user" as const) : ("assistant" as const), content: m.content }));
+      const searchQuery = await standaloneQuery(query, turns, { signal });
+      if (searchQuery !== query) writeSseStatus(res, conversationId, "Understood as", searchQuery);
+
       const userQueries = conversation.messages
         .filter((message) => message.role === "USER")
         .slice(-5)
@@ -284,7 +297,7 @@ aiRouter.post(
           }]
         : [];
 
-      const prepared = await prepare(res, conversationId, query, mode, history, signal);
+      const prepared = await prepare(res, conversationId, searchQuery, mode, history, signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
       if (signal.aborted) {
         log.finish({ ok: false, error: "stopped by client" });
