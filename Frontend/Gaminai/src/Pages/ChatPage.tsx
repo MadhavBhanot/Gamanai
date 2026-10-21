@@ -276,7 +276,16 @@ const AnswerStats = ({ metrics }: { metrics: AnswerMetrics }) => {
     { label: 'Total', value: formatSeconds(metrics.totalMs), hint: 'Search, retrieval and answer, end to end' },
     { label: 'Tokens', value: formatTokens(metrics.tokens), hint: 'Prompt + answer tokens' },
     { label: 'Steps', value: metrics.steps ? String(metrics.steps) : '', hint: 'Deep research searches' },
-    { label: 'Cost', value: metrics.costUsd === 0 ? '$0 · free tier' : '', hint: 'Every model runs on a free tier' },
+    {
+      label: 'Cost',
+      // Older answers saved costUsd: 0 before list prices existed; models without a list price have no costUsd
+      value: metrics.costUsd ? `$${metrics.costUsd.toFixed(4)}` : metrics.source === 'cache' ? '$0.0000' : 'free',
+      hint: metrics.costUsd
+        ? 'List-price equivalent (same price table as Langfuse); billed $0 on the free tier'
+        : metrics.source === 'cache'
+          ? 'Replayed from cache: no model call'
+          : 'Free-tier model with no published list price',
+    },
   ].filter((item) => item.value);
   if (!items.length) return null;
   return (

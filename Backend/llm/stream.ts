@@ -6,6 +6,7 @@ import { generateAnswer } from "./answer";
 import { describeStep, type ResearchStep } from "./research";
 import type { SourceContext } from "./buildPrompt";
 import type { CachedAnswer } from "./cache";
+import { listPriceUsd } from "./pricing";
 import { truncateText } from "../lib/text";
 
 export type ChatMessage = {
@@ -84,8 +85,9 @@ export async function streamAiResponse({
     });
     const trace = traceLines.length ? `\n<RESEARCH>${JSON.stringify(traceLines)}</RESEARCH>` : "";
 
-    // Shown under the answer (model, speed, tokens); saved with the message like citations. Every model runs on a
-    // free tier, so cost is a real $0, not an estimate.
+    // Shown under the answer (model, speed, tokens, cost); saved with the message like citations. Cost is the
+    // list-price equivalent from Langfuse's price table (we're billed $0 on free tiers); unpriced models omit it.
+    const costUsd = await listPriceUsd(model, promptTokens, completionTokens);
     const metrics = `\n<METRICS>${JSON.stringify({
       model,
       ttftMs: Math.round(ttftMs),
@@ -93,7 +95,7 @@ export async function streamAiResponse({
       tokens: promptTokens + completionTokens,
       steps: researchSteps?.length || undefined,
       source: contextMode === "index" ? "saved" : "web",
-      costUsd: 0,
+      costUsd,
     })}</METRICS>`;
     writeSse(res, { type: "delta", text: metrics });
 
