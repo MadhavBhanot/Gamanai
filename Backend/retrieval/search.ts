@@ -25,6 +25,12 @@ const DIRECT_EXTRACT_CONTENT_CHAR_LIMIT = 12_000; // matches the chunker's per-p
 const DIRECT_EXTRACT_SNIPPET_CHAR_LIMIT = 1_200;
 // Tavily calls have no built-in deadline; a hung request used to stall the whole answer.
 const SEARCH_TIMEOUT_MS = 20_000;
+// Tavily's basic depth sometimes keys on one word of a full question ("Who won ... Nobel Prize" returned pages about
+// the Korean won, best score 0.06; relevant results score 0.7-0.9). Below this, retry once at advanced depth.
+export const LOW_RELEVANCE_SCORE = 0.2;
+
+export const isLowRelevance = (results: Array<{ score?: number }>) =>
+  results.length > 0 && Math.max(...results.map((r) => r.score ?? 0)) < LOW_RELEVANCE_SCORE;
 
 export function dedupeWebSearchResults(results: WebSearchResult[]) {
   const seen = new Set<string>();
@@ -67,9 +73,9 @@ export async function getWebSearchResults(query: string, { images }: { images?: 
         })
     : Promise.resolve(null);
 
-  const searchPromise = withTimeout(tavly
+  const search = (searchDepth: "basic" | "advanced") => withTimeout(tavly
     .search(queryContext.optimizedSearchQuery, {
-      searchDepth: "basic",
+      searchDepth,
       includeDomains: queryContext.referencedDomains.length
         ? queryContext.referencedDomains
         : undefined,
@@ -83,10 +89,17 @@ export async function getWebSearchResults(query: string, { images }: { images?: 
       return null;
     });
 
-  const [extracted, webResults] = await Promise.all([
+  const [extracted, basicResults] = await Promise.all([
     extractionPromise,
-    searchPromise,
+    search("basic"),
   ]);
+
+  let webResults = basicResults;
+  if (basicResults && isLowRelevance(basicResults.results ?? [])) {
+    console.warn(`[Tavily] low-relevance results for ${JSON.stringify(queryContext.optimizedSearchQuery)}; retrying at advanced depth`);
+    const advanced = await search("advanced");
+    if (advanced && !isLowRelevance(advanced.results ?? [])) webResults = advanced;
+  }
 
   // Process extraction results
   const extractedResults: WebSearchResult[] = [];
