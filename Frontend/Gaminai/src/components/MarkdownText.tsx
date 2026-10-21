@@ -14,7 +14,9 @@ type ParsedImage = {
 const blockStarter = /^(\s*[-*]\s+|\s*\d+\.\s+|#{1,4}\s+|>\s*|```|\s*-{3,}\s*$|\s*\||\s*!\[|\s*<img\b)/i;
 
 const inlinePattern =
-  /!\[([^\]]*)\]\s*\((https?:\/\/[^)\s]+?)(?:\s+["']([^"']*)["'])?\s*\)|<img\b[^>]*>|`[^`]+`|\*\*[^*\n]+\*\*|(?<!\*)\*[^*\n]+\*(?!\*)|(?<!_)_[^_\n]+_(?!_)|\[[^\]]+\]\((?:https?:\/\/[^)\s]+)\)/gi;
+  /!\[([^\]]*)\]\s*\((https?:\/\/[^)\s]+?)(?:\s+["']([^"']*)["'])?\s*\)|<img\b[^>]*>|`[^`]+`|\*\*[^*\n]+\*\*|(?<!\*)\*[^*\n]+\*(?!\*)|(?<![\w_])_[^_\n]+_(?![\w_])|\[[^\]]+\]\((?:https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/gi;
+// Intraword underscores ($w_{ij}$, Hopfield_network) are not emphasis, as in CommonMark; otherwise an underscore
+// in LaTeX pairs with one in a citation URL and the "italic" swallows the link.
 
 const markdownImagePattern = /!\[([^\]]*)\]\s*\((https?:\/\/[^)\s]+?)(?:\s+["']([^"']*)["'])?\s*\)/i;
 const htmlImagePattern = /^<img\b[^>]*>$/i;
@@ -83,6 +85,14 @@ const parseEmphasisToken = (token: string) => {
 };
 
 // The server drops dead links, but a host can still block hotlinking; hide the whole figure rather than a broken icon
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+};
+
 export const hideBrokenImage = (event: SyntheticEvent<HTMLImageElement>) => {
   const img = event.currentTarget;
   (img.closest<HTMLElement>('.md-figure, .md-inline-image-link') ?? img).style.display = 'none';
@@ -159,7 +169,7 @@ const renderInline = (
 
     const token = match[0];
     const image = parseImageToken(token);
-    const link = token.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/i);
+    const link = token.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)(?:\s+"([^"]*)")?\)$/i);
     const emphasis = parseEmphasisToken(token);
 
     if (image) {
@@ -175,12 +185,18 @@ const renderInline = (
     } else if (token.startsWith('`') && token.endsWith('`')) {
       nodes.push(<code key={`${keyPrefix}-code-${match.index}`}>{token.slice(1, -1)}</code>);
     } else if (link && /^\d{1,2}$/.test(link[1])) {
-      // [n](url) comes from inline source citations
+      // [n](url "title|passage") comes from inline source citations; the title feeds the hover preview
+      const [title, passage] = (link[3] ?? '').split('|');
       nodes.push(
         <sup className="citation" key={`${keyPrefix}-cite-${match.index}`}>
-          <a aria-label={`Source ${link[1]}`} href={link[2]} rel="noreferrer" target="_blank" title={link[2]}>
+          <a aria-label={`Source ${link[1]}${title ? `: ${title}` : ''}`} href={link[2]} rel="noreferrer" target="_blank">
             {link[1]}
           </a>
+          <span className="citation-preview" role="tooltip">
+            {title ? <strong>{title}</strong> : null}
+            <span className="citation-preview-host">{hostOf(link[2])}</span>
+            {passage ? <span className="citation-preview-text">{passage}</span> : null}
+          </span>
         </sup>,
       );
     } else if (link) {

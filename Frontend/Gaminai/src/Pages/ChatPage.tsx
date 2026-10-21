@@ -227,7 +227,7 @@ const extractThinkSection = (rawContent: string) => {
 // The backend appends <CITATIONS>[{url,title,quote?},...]</CITATIONS> after the answer; [n] in the text means entry n.
 const CITATIONS_PATTERN = /<CITATIONS>([\s\S]*?)(?:<\/CITATIONS>|$)/i;
 
-type Citation = { url: string; title: string; quote?: string };
+type Citation = { url: string; title: string; quote?: string; snippet?: string };
 
 const parseCitations = (rawContent: string): Citation[] => {
   const json = rawContent.match(CITATIONS_PATTERN)?.[1];
@@ -235,7 +235,7 @@ const parseCitations = (rawContent: string): Citation[] => {
   try {
     const parsed: unknown = JSON.parse(json);
     return Array.isArray(parsed)
-      ? parsed.filter(isRecord).map((c) => ({ url: getString(c.url), title: getString(c.title), quote: getString(c.quote) || undefined }))
+      ? parsed.filter(isRecord).map((c) => ({ url: getString(c.url), title: getString(c.title), quote: getString(c.quote) || undefined, snippet: getString(c.snippet) || undefined }))
       : [];
   } catch {
     return []; // still streaming or malformed: leave [n] as plain text
@@ -266,7 +266,10 @@ const linkCitations = (answer: string, citations: Citation[]) =>
     ? answer.replace(/\[(\d{1,2})\](?!\()/g, (marker, n: string) => {
         const source = citations[Number(n) - 1];
         // Encode parens (e.g. Wikipedia's Oppenheimer_(film)) or the markdown link ends at the first ")"
-        return source?.url.startsWith('http') ? `[${n}](${passageUrl(source).replace(/\(/g, '%28').replace(/\)/g, '%29')})` : marker;
+        if (!source?.url.startsWith('http')) return marker;
+        // Link title carries the hover preview: "title|passage" (quotes and pipes would end or split it)
+        const preview = [source.title, source.snippet ?? source.quote ?? ''].map((s) => s.replace(/["|\s]+/g, ' ').trim()).join('|');
+        return `[${n}](${passageUrl(source).replace(/\(/g, '%28').replace(/\)/g, '%29')} "${preview}")`;
       })
     : answer;
 

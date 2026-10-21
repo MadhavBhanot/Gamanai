@@ -2757,3 +2757,61 @@ h2 {
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* Hover/focus preview of the cited source */
+.citation {
+  position: relative;
+}
+
+.citation-preview {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 30;
+  display: none;
+  width: min(300px, 80vw);
+  padding: 10px 12px;
+  border: 1px solid var(--accent-soft);
+  border-radius: 10px;
+  /* Solid, not the glass --surface: answer text behind a translucent card is unreadable */
+  background: var(--canvas);
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.citation:hover .citation-preview,
+.citation:focus-within .citation-preview {
+  display: grid;
+  gap: 4px;
+}
+
+.citation-preview strong,
+.citation-preview-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.citation-preview strong {
+  -webkit-line-clamp: 2;
+  font-weight: 600;
+}
+
+.citation-preview-host {
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.citation-preview-text {
+  -webkit-line-clamp: 4;
+  color: var(--text-soft);
+}

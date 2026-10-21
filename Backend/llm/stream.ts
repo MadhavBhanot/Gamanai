@@ -6,6 +6,7 @@ import { generateAnswer } from "./answer";
 import { describeStep, type ResearchStep } from "./research";
 import type { SourceContext } from "./buildPrompt";
 import type { CachedAnswer } from "./cache";
+import { truncateText } from "../lib/text";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -70,7 +71,8 @@ export async function streamAiResponse({
     // [n] in the answer refers to contexts[n-1]; ship the mapping as the last chunk and persist it with the
     // message so citations still link after a reload.
     const citations = contexts.length
-      ? `\n<CITATIONS>${JSON.stringify(contexts.map(({ url, title, text }) => ({ url, title, quote: citationQuote(text) })))}</CITATIONS>`
+      ? `\n<CITATIONS>${// snippet feeds the hover preview on [n] chips
+      JSON.stringify(contexts.map(({ url, title, text }) => ({ url, title, quote: citationQuote(text), snippet: truncateText(text.replace(/\s+/g, " "), 220) })))}</CITATIONS>`
       : "";
     if (citations) writeSse(res, { type: "delta", text: citations });
 
