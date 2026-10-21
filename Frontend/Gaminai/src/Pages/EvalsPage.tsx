@@ -42,6 +42,7 @@ const BUCKET_NAMES: Record<string, string> = {
 };
 
 const CONTEXT_NAMES: Record<string, string> = {
+  rerank: 'Full-text recall (30) + Jina cross-encoder rerank',
   hybrid: 'Hybrid (vector + full-text, RRF)',
   vector: 'Vector only',
   fts: 'Full-text only',

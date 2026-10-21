@@ -3,19 +3,22 @@ import { Prisma } from "../generated/prisma/client";
 import { chunkText, cleanPageText, hashContent } from "./chunk";
 import { EMBEDDING_MODEL, embedTexts, toVectorLiteral } from "./embed";
 import { stripUrlsFromQuery } from "./query";
+import { rerankDocuments } from "./rerank";
 
 /**
  * Two-stage retrieval, sized for Gemini's free embedding tier (1,000 texts/day):
  *   1. recall: Postgres full-text search over every stored chunk of this question's pages (free)
  *   2. rerank: embed only the recalled candidates (cached per chunk), rank by cosine similarity,
  *      and fuse the full-text and vector orders with reciprocal rank fusion.
- * Modes for ablations: "fts" skips stage 2; "vector" reranks by similarity alone; "hybrid" fuses both.
+ * Modes for ablations: "fts" skips stage 2; "vector" reranks by similarity alone; "hybrid" fuses both;
+ * "rerank" recalls a wider full-text set and orders it with a cross-encoder (no embeddings).
  */
-export type RetrievalMode = "hybrid" | "vector" | "fts";
+export type RetrievalMode = "hybrid" | "vector" | "fts" | "rerank";
 export type RetrievedChunk = { url: string; title: string; content: string; score: number };
 
 const RRF_K = 60; // standard reciprocal-rank-fusion damping constant
 const RECALL_CANDIDATES = 12; // => at most 12 document + 1 query embeddings per question
+const RERANK_CANDIDATES = 30; // the cross-encoder costs tokens, not embeddings, so it can look wider
 
 const STOPWORDS = new Set(
   "the and for are was were what which who whom whose when where why how does did this that these those with from into about than then there their they them can could should would will its it's has have had not but you your our per via".split(" "),
@@ -72,7 +75,7 @@ export async function indexPages(pages: Array<{ url: string; title: string; text
 type Candidate = { id: bigint; url: string; title: string; content: string; embedded: boolean; ftsRanked: boolean };
 
 /** Stage 1: full-text top-N, topped up with each page's opening chunk when few keywords match. */
-async function recall(query: string, urls: string[]) {
+async function recall(query: string, urls: string[], limit = RECALL_CANDIDATES) {
   return prisma.$queryRaw<Candidate[]>`
     WITH c AS (
       SELECT id, url, title, content, "chunkIndex",
@@ -83,13 +86,13 @@ async function recall(query: string, urls: string[]) {
     f AS (
       SELECT id, ts_rank_cd(tsv, q) AS rank
       FROM c, websearch_to_tsquery('english', ${toOrQuery(query)}) q
-      WHERE tsv @@ q ORDER BY rank DESC LIMIT ${RECALL_CANDIDATES}
+      WHERE tsv @@ q ORDER BY rank DESC LIMIT ${limit}
     )
     SELECT c.id, c.url, c.title, c.content, c.embedded, (f.id IS NOT NULL) AS "ftsRanked"
     FROM c LEFT JOIN f ON f.id = c.id
     WHERE f.id IS NOT NULL OR c."chunkIndex" = 0
     ORDER BY f.rank DESC NULLS LAST, c.id
-    LIMIT ${RECALL_CANDIDATES}`;
+    LIMIT ${limit}`;
 }
 
 /** Stage 2 helper: embed candidates that have no vector for the current model, and store them. */
@@ -106,6 +109,11 @@ async function ensureEmbeddings(candidates: Candidate[]) {
 
 export async function retrieveChunks(query: string, urls: string[], { k = 8, mode = "hybrid" as RetrievalMode } = {}) {
   if (!urls.length) return [];
+  if (mode === "rerank") {
+    const wide = await recall(query, urls, RERANK_CANDIDATES);
+    const order = await rerankDocuments(query, wide.map((c) => `${c.title}\n${c.content}`), k);
+    return order.map((i, rank) => ({ url: wide[i].url, title: wide[i].title, content: wide[i].content, score: 1 / (rank + 1) }));
+  }
   const candidates = await recall(query, urls);
   if (!candidates.length) return [];
 
