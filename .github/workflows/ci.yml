@@ -49,5 +49,6 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: Frontend/Gaminai/package-lock.json
-      - run: npm ci
+      # Not `npm ci`: the lockfile is made on Windows and lacks Linux-only optional deps (@emnapi/*); Vercel uses install too
+      - run: npm install --no-audit --no-fund
       - run: npm run build
