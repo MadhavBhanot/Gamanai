@@ -12,6 +12,7 @@ const nvidia = createOpenAICompatible({
   name: "nvidia",
   baseURL: "https://integrate.api.nvidia.com/v1",
   apiKey: process.env.NVIDIA_API_KEY ?? "",
+  includeUsage: true, // otherwise streamed answers report 0 tokens
 });
 
 /** Resolve a "provider:model" spec, e.g. "google:gemini-2.5-flash" or "groq:qwen/qwen3.8-27b". */
