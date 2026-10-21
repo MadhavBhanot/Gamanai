@@ -11,6 +11,23 @@ export type ChatMessage = {
   content: string;
 };
 
+const QUOTE_WORDS = 6;
+const PLAIN_WORD = /^[\p{L}\p{N}][\p{L}\p{N}'’.,;:%-]*$/u;
+
+/**
+ * A few words from the start of a passage for a #:~:text= link that opens the source scrolled to it.
+ * Starts at a capitalised word (chunks can begin mid-sentence) and skips markdown/symbols the page won't contain.
+ */
+export function citationQuote(passage: string) {
+  const words = passage.split(/\s+/).filter(Boolean);
+  for (let i = 0; i + QUOTE_WORDS <= words.length; i++) {
+    if (!/^\p{Lu}/u.test(words[i])) continue;
+    const run = words.slice(i, i + QUOTE_WORDS);
+    if (run.every((w) => PLAIN_WORD.test(w))) return run.join(" ").replace(/[.,;:]+$/, "");
+  }
+  return undefined;
+}
+
 export async function streamAiResponse({
   res,
   conversationId,
@@ -52,7 +69,7 @@ export async function streamAiResponse({
     // [n] in the answer refers to contexts[n-1]; ship the mapping as the last chunk and persist it with the
     // message so citations still link after a reload.
     const citations = contexts.length
-      ? `\n<CITATIONS>${JSON.stringify(contexts.map(({ url, title }) => ({ url, title })))}</CITATIONS>`
+      ? `\n<CITATIONS>${JSON.stringify(contexts.map(({ url, title, text }) => ({ url, title, quote: citationQuote(text) })))}</CITATIONS>`
       : "";
     if (citations) writeSse(res, { type: "delta", text: citations });
 

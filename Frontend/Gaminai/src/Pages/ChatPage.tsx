@@ -224,16 +224,18 @@ const extractThinkSection = (rawContent: string) => {
   };
 };
 
-// The backend appends <CITATIONS>[{url,title},...]</CITATIONS> after the answer; [n] in the text means entry n.
+// The backend appends <CITATIONS>[{url,title,quote?},...]</CITATIONS> after the answer; [n] in the text means entry n.
 const CITATIONS_PATTERN = /<CITATIONS>([\s\S]*?)(?:<\/CITATIONS>|$)/i;
 
-const parseCitations = (rawContent: string): Array<{ url: string; title: string }> => {
+type Citation = { url: string; title: string; quote?: string };
+
+const parseCitations = (rawContent: string): Citation[] => {
   const json = rawContent.match(CITATIONS_PATTERN)?.[1];
   if (!json) return [];
   try {
     const parsed: unknown = JSON.parse(json);
     return Array.isArray(parsed)
-      ? parsed.filter(isRecord).map((c) => ({ url: getString(c.url), title: getString(c.title) }))
+      ? parsed.filter(isRecord).map((c) => ({ url: getString(c.url), title: getString(c.title), quote: getString(c.quote) || undefined }))
       : [];
   } catch {
     return []; // still streaming or malformed: leave [n] as plain text
@@ -255,12 +257,16 @@ const parseResearchSteps = (rawContent: string): string[] | undefined => {
 };
 
 /** Turn [n] markers into markdown links to their source; MarkdownText renders numeric links as citation chips. */
-const linkCitations = (answer: string, citations: Array<{ url: string; title: string }>) =>
+/** Text-fragment link: supporting browsers open the source scrolled to the cited passage and highlight it. */
+const passageUrl = ({ url, quote }: Citation) =>
+  quote && !url.includes('#') ? `${url}#:~:text=${encodeURIComponent(quote).replace(/-/g, '%2D')}` : url;
+
+const linkCitations = (answer: string, citations: Citation[]) =>
   citations.length
     ? answer.replace(/\[(\d{1,2})\](?!\()/g, (marker, n: string) => {
         const source = citations[Number(n) - 1];
         // Encode parens (e.g. Wikipedia's Oppenheimer_(film)) or the markdown link ends at the first ")"
-        return source?.url.startsWith('http') ? `[${n}](${source.url.replace(/\(/g, '%28').replace(/\)/g, '%29')})` : marker;
+        return source?.url.startsWith('http') ? `[${n}](${passageUrl(source).replace(/\(/g, '%28').replace(/\)/g, '%29')})` : marker;
       })
     : answer;
 
