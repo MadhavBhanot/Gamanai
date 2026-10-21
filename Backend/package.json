@@ -5,11 +5,14 @@
     "dev": "nodemon index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "eval": "ts-node --transpile-only evals/run.ts"
+    "eval": "ts-node --transpile-only evals/run.ts",
+    "mcp": "ts-node --transpile-only mcp.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.135",
     "@ai-sdk/groq": "^3.0.35",
+    "@ai-sdk/openai-compatible": "^2.0.87",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@supabase/supabase-js": "^2.105.1",

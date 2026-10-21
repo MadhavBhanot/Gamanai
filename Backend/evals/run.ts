@@ -65,7 +65,8 @@ setEmbeddingLimiter(new TokenPacer(Number(process.env.EVAL_EMBED_RPM || 60)));
 const ANSWER = args.model ? resolveModel(args.model) : ANSWER_CHAIN[0];
 
 // Free-tier limits per model (90% budgeted so bursts don't trip 429s). Override with EVAL_<PROVIDER>_TPM / _RPM.
-const FREE_TIER_LIMITS = { groq: { tpm: 8000, rpm: 30 }, google: { tpm: 250_000, rpm: 10 } } as const;
+// NVIDIA publishes only ~40 RPM, no TPM, so its token budget is effectively unlimited.
+const FREE_TIER_LIMITS = { groq: { tpm: 8000, rpm: 30 }, google: { tpm: 250_000, rpm: 10 }, nvidia: { tpm: 1_000_000, rpm: 40 } } as const;
 const pacers = new Map<string, { tokens: TokenPacer; requests: TokenPacer }>();
 function pacerFor(ref: ModelRef) {
   let pacer = pacers.get(ref.label);
