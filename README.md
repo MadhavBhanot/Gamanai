@@ -15,6 +15,7 @@ Runs entirely on free tiers: Vercel, Render, Supabase (Postgres + pgvector), Gem
 - **Prompt-injection guard.** Text on fetched pages is data, never instructions: instruction-like sentences are stripped before they reach a prompt, and a canary eval set measures how often a planted instruction gets through.
 - **Provider fallback.** Answers stream from Gemini Flash-Lite, then fall back to Gemma 4, NVIDIA Nemotron and Groq if a model fails before its first token (each free tier runs out differently).
 - **MCP server.** The same pipeline as a `gaminai_research(query, mode)` tool for Claude Desktop, Cursor or any MCP client.
+- **Tracing.** Optional Langfuse tracing over OpenTelemetry: one trace per request (user, conversation, route, mode) containing every model call (follow-up rewrite, Deep-mode planner steps, answer) with prompts, outputs, latency and token usage.
 - **Ops.** Every request is logged (model, fallback, latency, time to first token, tokens, research steps); an admin dashboard shows the trends, and thumbs-down answers can be turned into new eval cases with one click.
 
 ## Architecture
@@ -60,7 +61,7 @@ A GitHub Actions workflow runs a 20-question smoke subset on pull requests that 
 
 ## Stack
 
-TypeScript everywhere. **Backend:** Express 5, Vercel AI SDK (Gemini, NVIDIA, Groq), MCP SDK, Prisma 7, Postgres with pgvector, Tavily, Zod, Vitest. **Frontend:** React 19, Vite, Tailwind 4, Supabase Auth.
+TypeScript everywhere. **Backend:** Express 5, Vercel AI SDK (Gemini, NVIDIA, Groq), MCP SDK, Langfuse + OpenTelemetry, Prisma 7, Postgres with pgvector, Tavily, Zod, Vitest. **Frontend:** React 19, Vite, Tailwind 4, Supabase Auth.
 
 ## Run it locally
 

@@ -8,6 +8,7 @@ import { authorize } from "../Middleware/authorize";
 import { asyncHandler, getRequestUserId } from "../lib/http";
 import { abortOnClose, failSse, setSseHeaders, startSseKeepAlive, writeSseStatus } from "../lib/sse";
 import { startRequestLog } from "../lib/requestLog";
+import { traceRequest } from "../lib/tracing";
 import { slugify } from "../lib/text";
 import { answerFromIndex, prepareAnswer } from "../llm/answer";
 import { describeStep, prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
@@ -84,6 +85,7 @@ export const aiRouter = Router();
 aiRouter.post(
   "/",
   authorize,
+  traceRequest("ai"),
   asyncHandler(async (req, res) => {
     const userId = getRequestUserId(req, res);
     if (!userId) return;
@@ -172,6 +174,7 @@ aiRouter.post(
 aiRouter.post(
   "/guest",
   guestLimiter,
+  traceRequest("guest"),
   asyncHandler(async (req, res) => {
     const parsed = guestRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -238,6 +241,7 @@ aiRouter.post(
 aiRouter.post(
   "/follow_up",
   authorize,
+  traceRequest("follow_up"),
   asyncHandler(async (req, res) => {
     const userId = getRequestUserId(req, res);
     if (!userId) return;

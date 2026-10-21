@@ -1,5 +1,6 @@
 import { streamText } from "ai";
 import { truncateText } from "../lib/text";
+import { telemetry } from "../lib/tracing";
 import { SYSTEM_PROMPT } from "../prompt";
 import { indexPages, retrieveChunks, type RetrievalMode } from "../retrieval/hybrid";
 import { indexFirstEnabled, isIndexConfident, searchIndex } from "../retrieval/indexFirst";
@@ -137,6 +138,7 @@ export async function generateAnswer(
         maxRetries,
         abortSignal: signal ? AbortSignal.any([AbortSignal.timeout(ANSWER_TIMEOUT_MS), signal]) : AbortSignal.timeout(ANSWER_TIMEOUT_MS),
         providerOptions: providerOptionsFor(ref),
+        experimental_telemetry: telemetry("answer"),
         onError: () => {}, // errors surface as "error" parts below; the SDK default would also console.error them
       });
 

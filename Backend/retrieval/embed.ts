@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { embedMany } from "ai";
+import { telemetry } from "../lib/tracing";
 
 export const EMBEDDING_DIMENSIONS = 768; // must match vector(768) in the SourceChunk migration
 // Gemini free tier: 1,000 texts/day. "nvidia:<model>" uses NVIDIA's catalog instead (limited per request, not per
@@ -48,6 +49,7 @@ export async function embedTexts(values: string[], kind: "document" | "query") {
     values,
     maxRetries: 1,
     abortSignal: AbortSignal.timeout(20_000),
+    experimental_telemetry: telemetry(`embed-${kind}`),
     providerOptions: {
       google: {
         outputDimensionality: EMBEDDING_DIMENSIONS,

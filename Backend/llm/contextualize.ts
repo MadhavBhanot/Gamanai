@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { truncateText } from "../lib/text";
+import { telemetry } from "../lib/tracing";
 import { stripInjections } from "./guard";
 import { providerOptionsFor, resolveChain, type ModelRef } from "./providers";
 
@@ -79,6 +80,7 @@ export async function standaloneQuery(query: string, history: Turn[], { chain = 
         maxRetries: 0,
         abortSignal: signal ? AbortSignal.any([AbortSignal.timeout(REWRITE_TIMEOUT_MS), signal]) : AbortSignal.timeout(REWRITE_TIMEOUT_MS),
         providerOptions: rewriteOptions(ref),
+        experimental_telemetry: telemetry("follow-up-rewrite"),
       });
       const rewritten = cleanRewrite(text);
       if (rewritten) return keepUrls(query, rewritten);

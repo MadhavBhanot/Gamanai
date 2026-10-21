@@ -1,3 +1,5 @@
+// Must load first: Langfuse/OpenTelemetry has to patch before the AI SDK is imported
+import "./instrumentation";
 import { port } from "./config";
 import { app } from "./app";
 

@@ -1,6 +1,7 @@
 import { generateText, stepCountIs, tool, type StopCondition, type ToolSet } from "ai";
 import { z } from "zod";
 import { truncateText } from "../lib/text";
+import { telemetry } from "../lib/tracing";
 import { buildQueryOptimizationContext, dedupeStrings } from "../retrieval/query";
 import { dedupeWebSearchResults, getWebSearchResults, wantsImages, type WebSearchResult } from "../retrieval/search";
 import { answerMessages, buildContexts, CONTEXT_MODE, prepareAnswer, type ContextMode, type PreparedAnswer } from "./answer";
@@ -142,6 +143,7 @@ export async function prepareDeepAnswer(
         maxRetries,
         abortSignal: signal ? AbortSignal.any([AbortSignal.timeout(RESEARCH_TIMEOUT_MS), signal]) : AbortSignal.timeout(RESEARCH_TIMEOUT_MS),
         providerOptions: providerOptionsFor(ref),
+        experimental_telemetry: telemetry("deep-research-planner"),
       });
       research.modelCalls += result.steps.length;
       research.inputTokens += result.totalUsage.inputTokens ?? 0;
