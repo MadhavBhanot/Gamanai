@@ -144,6 +144,7 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepsOf(prepared),
+        contextMode: prepared.contextMode,
         signal,
         onComplete: async (content) => {
           await prisma.message.create({
@@ -218,6 +219,7 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepsOf(prepared),
+        contextMode: prepared.contextMode,
         signal,
         // Only the answer and its sources are stored (no user or IP), to serve the next identical question
         onComplete: async (content) => {
@@ -325,6 +327,7 @@ aiRouter.post(
         contexts,
         log,
         researchSteps: stepsOf(prepared),
+        contextMode: prepared.contextMode,
         signal,
         onComplete: async (content) => {
           await prisma.message.create({

@@ -39,6 +39,7 @@ export async function streamAiResponse({
   onComplete,
   log,
   researchSteps,
+  contextMode,
   signal,
 }: {
   res: express.Response;
@@ -49,6 +50,7 @@ export async function streamAiResponse({
   onComplete?: (content: string) => Promise<void>;
   log?: RequestLogger;
   researchSteps?: ResearchStep[];
+  contextMode?: string; // "index" = answered from stored passages, no web search
   signal?: AbortSignal;
 }) {
   if (!res.headersSent) {
@@ -70,10 +72,9 @@ export async function streamAiResponse({
 
     // [n] in the answer refers to contexts[n-1]; ship the mapping as the last chunk and persist it with the
     // message so citations still link after a reload.
-    const citations = contexts.length
-      ? `\n<CITATIONS>${// snippet feeds the hover preview on [n] chips
-      JSON.stringify(contexts.map(({ url, title, text }) => ({ url, title, quote: citationQuote(text), snippet: truncateText(text.replace(/\s+/g, " "), 220) })))}</CITATIONS>`
-      : "";
+    // snippet feeds the hover preview on [n] chips
+    const cited = contexts.map(({ url, title, text }) => ({ url, title, quote: citationQuote(text), snippet: truncateText(text.replace(/\s+/g, " "), 220) }));
+    const citations = contexts.length ? `\n<CITATIONS>${JSON.stringify(cited)}</CITATIONS>` : "";
     if (citations) writeSse(res, { type: "delta", text: citations });
 
     // Deep mode's steps are saved (not streamed: the client already showed them live) so the trace survives a reload
@@ -83,8 +84,21 @@ export async function streamAiResponse({
     });
     const trace = traceLines.length ? `\n<RESEARCH>${JSON.stringify(traceLines)}</RESEARCH>` : "";
 
+    // Shown under the answer (model, speed, tokens); saved with the message like citations. Every model runs on a
+    // free tier, so cost is a real $0, not an estimate.
+    const metrics = `\n<METRICS>${JSON.stringify({
+      model,
+      ttftMs: Math.round(ttftMs),
+      totalMs: log?.elapsedMs(),
+      tokens: promptTokens + completionTokens,
+      steps: researchSteps?.length || undefined,
+      source: contextMode === "index" ? "saved" : "web",
+      costUsd: 0,
+    })}</METRICS>`;
+    writeSse(res, { type: "delta", text: metrics });
+
     if (content.trim() && onComplete) {
-      await onComplete(content + citations + trace);
+      await onComplete(content + citations + trace + metrics);
     }
 
     writeSse(res, { type: "response_end", conversationId });
@@ -112,7 +126,9 @@ export function replayCachedAnswer(res: express.Response, conversationId: string
   writeSseStatus(res, conversationId, "Answered from cache", "The same question was answered in the last 24 hours.");
   writeSse(res, { type: "sources", sources: cached.sources });
   writeSse(res, { type: "response_start", conversationId });
-  writeSse(res, { type: "delta", text: cached.content });
+  // The stored metrics describe the original run; a replay costs no model call
+  const metrics = `<METRICS>${JSON.stringify({ model: "cache", totalMs: log?.elapsedMs(), tokens: 0, source: "cache", costUsd: 0 })}</METRICS>`;
+  writeSse(res, { type: "delta", text: cached.content.replace(/<METRICS>[\s\S]*?<\/METRICS>/, "") + `\n${metrics}` });
   writeSse(res, { type: "response_end", conversationId });
   log?.finish({ ok: true, model: "cache", sourceCount: cached.sources.length });
   res.end();

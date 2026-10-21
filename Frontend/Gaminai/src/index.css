@@ -1849,6 +1849,51 @@ h2 {
   cursor: default;
 }
 
+/* Per-answer details next to copy/thumbs: label over value, wraps on narrow screens */
+.message-feedback {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.answer-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 0 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line-strong);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.answer-stats div {
+  display: grid;
+  cursor: default;
+}
+
+.answer-stats dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.answer-stats dd {
+  margin: 0;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 520px) {
+  .answer-stats {
+    flex-basis: 100%;
+    margin: 6px 0 0;
+    padding: 6px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+}
+
 .research-steps {
   display: grid;
   gap: 4px;

@@ -22,6 +22,8 @@ export function startRequestLog(start: LogStart) {
   let finished = false;
 
   return {
+    /** Milliseconds since the request started (search + retrieval + answer). */
+    elapsedMs: () => Math.round(performance.now() - startedAt),
     finish(result: LogFinish) {
       if (finished) return;
       finished = true;

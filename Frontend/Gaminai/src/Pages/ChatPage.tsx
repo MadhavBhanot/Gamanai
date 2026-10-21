@@ -245,6 +245,52 @@ const parseCitations = (rawContent: string): Citation[] => {
 // Deep answers are saved with <RESEARCH>["Research step 1: search: ...", ...]</RESEARCH> so the trace survives reloads
 const RESEARCH_PATTERN = /<RESEARCH>([\s\S]*?)(?:<\/RESEARCH>|$)/i;
 
+// <METRICS>{model, ttftMs, totalMs, tokens, steps, source, costUsd}</METRICS>: shown under the answer, saved with it
+const METRICS_PATTERN = /<METRICS>([\s\S]*?)(?:<\/METRICS>|$)/i;
+
+type AnswerMetrics = { model?: string; ttftMs?: number; totalMs?: number; tokens?: number; steps?: number; source?: string; costUsd?: number };
+
+const parseMetrics = (rawContent: string): AnswerMetrics | null => {
+  const json = rawContent.match(METRICS_PATTERN)?.[1];
+  if (!json) return null;
+  try {
+    const parsed: unknown = JSON.parse(json);
+    return isRecord(parsed) ? (parsed as AnswerMetrics) : null;
+  } catch {
+    return null; // still streaming
+  }
+};
+
+const formatSeconds = (ms?: number) => (ms === undefined ? '' : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`);
+const formatTokens = (n?: number) => (!n ? '' : n < 1000 ? `${n}` : `${(n / 1000).toFixed(1)}k`);
+// "google:gemini-3.5-flash-lite" -> "gemini-3.5-flash-lite"; "nvidia:nvidia/nemotron..." -> "nemotron..."
+const shortModel = (model?: string) => (model ?? '').replace(/^[a-z]+:/, '').replace(/^[^/]+\//, '');
+
+const SOURCE_LABELS: Record<string, string> = { web: 'Web search', saved: 'Saved sources', cache: 'Cached answer' };
+
+const AnswerStats = ({ metrics }: { metrics: AnswerMetrics }) => {
+  const items = [
+    { label: 'Source', value: SOURCE_LABELS[metrics.source ?? ''] ?? '', hint: 'Where the passages came from' },
+    { label: 'Model', value: metrics.source === 'cache' ? '' : shortModel(metrics.model), hint: metrics.model },
+    { label: 'First word', value: formatSeconds(metrics.ttftMs), hint: 'Time until the answer started streaming' },
+    { label: 'Total', value: formatSeconds(metrics.totalMs), hint: 'Search, retrieval and answer, end to end' },
+    { label: 'Tokens', value: formatTokens(metrics.tokens), hint: 'Prompt + answer tokens' },
+    { label: 'Steps', value: metrics.steps ? String(metrics.steps) : '', hint: 'Deep research searches' },
+    { label: 'Cost', value: metrics.costUsd === 0 ? '$0 · free tier' : '', hint: 'Every model runs on a free tier' },
+  ].filter((item) => item.value);
+  if (!items.length) return null;
+  return (
+    <dl className="answer-stats" aria-label="Answer details">
+      {items.map((item) => (
+        <div key={item.label} title={item.hint}>
+          <dt>{item.label}</dt>
+          <dd>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+};
+
 const parseResearchSteps = (rawContent: string): string[] | undefined => {
   const json = rawContent.match(RESEARCH_PATTERN)?.[1];
   if (!json) return undefined;
@@ -277,6 +323,7 @@ const stripAssistantNoise = (value: string) =>
   value
     .replace(CITATIONS_PATTERN, '')
     .replace(RESEARCH_PATTERN, '')
+    .replace(METRICS_PATTERN, '')
     .replace(/(?:^|\n)\s*(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*(?=\n|$)/gi, '\n')
     .replace(/^(?:Reasoning trace|Reasoning|Analysis|Thoughts?|Thinking trace|Final answer)\s*:?\s*/i, '')
     .replace(/\n{3,}/g, '\n\n');
@@ -2259,6 +2306,10 @@ const ChatPage = () => {
                           {rating === 1 ? <ThumbsUp aria-hidden="true" size={14} /> : <ThumbsDown aria-hidden="true" size={14} />}
                         </button>
                       ))}
+                      {(() => {
+                        const metrics = parseMetrics(message.rawContent ?? assistantRawContentByIdRef.current[message.id] ?? '');
+                        return metrics ? <AnswerStats metrics={metrics} /> : null;
+                      })()}
                     </div>
                   ) : null}
                 </article>

@@ -30,7 +30,7 @@ export type Turn = { role: "user" | "assistant" | "system"; content: string };
 export function plainAnswer(content: string) {
   const answer = content.match(/<ANSWER>([\s\S]*?)(<\/ANSWER>|<FOLLOW_UPS>|$)/i)?.[1] ?? content;
   return answer
-    .replace(/<(CITATIONS|RESEARCH|FOLLOW_UPS|think)>[\s\S]*?(<\/\1>|$)/gi, " ")
+    .replace(/<(CITATIONS|RESEARCH|METRICS|FOLLOW_UPS|think)>[\s\S]*?(<\/\1>|$)/gi, " ")
     .replace(/\[\d{1,2}\](\([^)]*\))?/g, "")
     .replace(/\s+/g, " ")
     .trim();
