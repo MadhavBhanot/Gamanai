@@ -11,7 +11,8 @@ import { startRequestLog } from "../lib/requestLog";
 import { slugify } from "../lib/text";
 import { prepareAnswer } from "../llm/answer";
 import { describeStep, prepareDeepAnswer, type DeepPreparedAnswer } from "../llm/research";
-import { streamAiResponse, type ChatMessage } from "../llm/stream";
+import { lookupCachedAnswer, storeCachedAnswer } from "../llm/cache";
+import { replayCachedAnswer, streamAiResponse, type ChatMessage } from "../llm/stream";
 
 // "deep" runs the research agent loop before answering; "quick" is the single-search pipeline
 const answerMode = z.enum(["quick", "deep"]).default("quick");
@@ -103,6 +104,13 @@ aiRouter.post(
     const log = startRequestLog({ route: "ai", mode, userId, conversationId: conversation.id });
 
     try {
+      const cache = await lookupCachedAnswer(query, mode);
+      if (cache.hit) {
+        await prisma.message.create({ data: { content: cache.hit.content, role: "ASSISTANT", conversationId: conversation.id } });
+        replayCachedAnswer(res, conversation.id, cache.hit, log);
+        return;
+      }
+
       const prepared = await prepare(res, conversation.id, query, mode, [], signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
       if (signal.aborted) {
@@ -129,6 +137,7 @@ aiRouter.post(
               conversationId: conversation.id,
             },
           });
+          if (cache.embedding) void storeCachedAnswer(query, mode, cache.embedding, content, webSearchResponse);
         },
       });
     } catch (error) {
@@ -145,7 +154,7 @@ aiRouter.post(
   }),
 );
 
-// Public demo: no auth, nothing persisted, rate limited per IP to protect free-tier quotas.
+// Public demo: no auth, no conversation saved (answers feed the shared cache), rate limited per IP for free-tier quotas.
 aiRouter.post(
   "/guest",
   guestLimiter,
@@ -166,6 +175,12 @@ aiRouter.post(
     const log = startRequestLog({ route: "guest", mode });
 
     try {
+      const cache = await lookupCachedAnswer(query, mode);
+      if (cache.hit) {
+        replayCachedAnswer(res, conversationId, cache.hit, log);
+        return;
+      }
+
       const prepared = await prepare(res, conversationId, query, mode, [], signal);
       const { results: webSearchResponse, messages, contexts } = prepared;
       if (signal.aborted) {
@@ -184,6 +199,10 @@ aiRouter.post(
         log,
         researchSteps: stepsOf(prepared),
         signal,
+        // Only the answer and its sources are stored (no user or IP), to serve the next identical question
+        onComplete: async (content) => {
+          if (cache.embedding) void storeCachedAnswer(query, mode, cache.embedding, content, webSearchResponse);
+        },
       });
     } catch (error) {
       if (signal.aborted) {

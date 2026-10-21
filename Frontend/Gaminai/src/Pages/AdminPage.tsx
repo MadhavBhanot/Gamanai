@@ -11,6 +11,7 @@ type Day = {
   avgTokens: number | null;
   errors: number;
   fallbacks: number;
+  cacheHits?: number;
   deep: number;
 };
 
@@ -53,8 +54,8 @@ const AdminPage = () => {
   }, []);
 
   const totals = (stats?.days ?? []).reduce(
-    (t, d) => ({ requests: t.requests + d.requests, errors: t.errors + d.errors, fallbacks: t.fallbacks + d.fallbacks, deep: t.deep + d.deep }),
-    { requests: 0, errors: 0, fallbacks: 0, deep: 0 },
+    (t, d) => ({ requests: t.requests + d.requests, errors: t.errors + d.errors, fallbacks: t.fallbacks + d.fallbacks, cacheHits: t.cacheHits + (d.cacheHits ?? 0), deep: t.deep + d.deep }),
+    { requests: 0, errors: 0, fallbacks: 0, cacheHits: 0, deep: 0 },
   );
   const up = stats?.ratings.up ?? 0;
   const down = stats?.ratings.down ?? 0;
@@ -84,6 +85,7 @@ const AdminPage = () => {
               <div><dt>Requests</dt><dd>{totals.requests}</dd><p>Quick and deep answers</p></div>
               <div><dt>Error rate</dt><dd>{pct(totals.errors, totals.requests)}</dd><p>Requests that ended without an answer</p></div>
               <div><dt>Fallback rate</dt><dd>{pct(totals.fallbacks, totals.requests)}</dd><p>Answered by a backup model</p></div>
+              <div><dt>Cache hit rate</dt><dd>{pct(totals.cacheHits, totals.requests)}</dd><p>Answered from the semantic cache</p></div>
               <div><dt>Deep research share</dt><dd>{pct(totals.deep, totals.requests)}</dd><p>Requests in deep mode</p></div>
               <div><dt>Thumbs up</dt><dd>{pct(up, up + down)}</dd><p>{up} up · {down} down</p></div>
             </dl>

@@ -32,7 +32,7 @@ export function startRequestLog(start: LogStart) {
             ...start,
             ...result,
             error: result.error?.slice(0, 500),
-            fellBack: Boolean(result.model && result.model !== ANSWER_CHAIN[0]?.label),
+            fellBack: Boolean(result.model && result.model !== ANSWER_CHAIN[0]?.label && result.model !== "cache"),
             totalMs: Math.round(performance.now() - startedAt),
             ttftMs: round(result.ttftMs),
           },

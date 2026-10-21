@@ -73,6 +73,20 @@ model SourceChunk {
   @@index([url])
 }
 
+// Semantic answer cache (llm/cache.ts): near-identical first-turn questions within 24 h replay the stored answer.
+model AnswerCache {
+  id             BigInt                     @id @default(autoincrement())
+  createdAt      DateTime                   @default(now())
+  query          String
+  mode           String
+  embedding      Unsupported("vector(768)")
+  embeddingModel String
+  content        String
+  sources        Json
+
+  @@index([createdAt])
+}
+
 // One row per AI request, for the /admin ops dashboard. Written fire-and-forget; never blocks an answer.
 model RequestLog {
   id               BigInt   @id @default(autoincrement())

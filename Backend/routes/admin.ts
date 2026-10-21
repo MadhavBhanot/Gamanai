@@ -24,6 +24,7 @@ type DayRow = {
   avgTokens: number | null;
   errors: number;
   fallbacks: number;
+  cacheHits: number;
   deep: number;
 };
 
@@ -43,6 +44,7 @@ adminRouter.get(
                avg(coalesce("promptTokens", 0) + coalesce("completionTokens", 0))::int AS "avgTokens",
                count(*) FILTER (WHERE NOT ok)::int AS errors,
                count(*) FILTER (WHERE "fellBack")::int AS fallbacks,
+               count(*) FILTER (WHERE model = 'cache')::int AS "cacheHits",
                count(*) FILTER (WHERE mode = 'deep')::int AS deep
         FROM "RequestLog"
         WHERE "createdAt" > now() - interval '14 days'

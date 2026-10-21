@@ -1,10 +1,11 @@
 import type express from "express";
 import type { RequestLogger } from "../lib/requestLog";
-import { setSseHeaders, writeSse } from "../lib/sse";
+import { setSseHeaders, writeSse, writeSseStatus } from "../lib/sse";
 import type { WebSearchResult } from "../retrieval/search";
 import { generateAnswer } from "./answer";
 import { describeStep, type ResearchStep } from "./research";
 import type { SourceContext } from "./buildPrompt";
+import type { CachedAnswer } from "./cache";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -102,4 +103,15 @@ export async function streamAiResponse({
   } finally {
     res.end();
   }
+}
+
+/** Replay a cached answer with the same events a live answer sends, so the client needs no special case. */
+export function replayCachedAnswer(res: express.Response, conversationId: string, cached: CachedAnswer, log?: RequestLogger) {
+  writeSseStatus(res, conversationId, "Answered from cache", "The same question was answered in the last 24 hours.");
+  writeSse(res, { type: "sources", sources: cached.sources });
+  writeSse(res, { type: "response_start", conversationId });
+  writeSse(res, { type: "delta", text: cached.content });
+  writeSse(res, { type: "response_end", conversationId });
+  log?.finish({ ok: true, model: "cache", sourceCount: cached.sources.length });
+  res.end();
 }
