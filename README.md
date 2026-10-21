@@ -4,7 +4,7 @@ A web research assistant that answers with **numbered, checkable citations**, pl
 
 **[Try it as a guest](https://gaminai-alpha.vercel.app)** (no sign-up) · **[Evaluation results](https://gaminai-alpha.vercel.app/evals)**
 
-Runs entirely on free tiers: Vercel, Render, Supabase (Postgres + pgvector), Gemini, Groq and Tavily.
+Runs entirely on free tiers: Vercel, Render, Supabase (Postgres + pgvector), Gemini/Gemma, NVIDIA, Groq and Tavily.
 
 ## What it does
 
@@ -13,6 +13,8 @@ Runs entirely on free tiers: Vercel, Render, Supabase (Postgres + pgvector), Gem
 - **URL-aware.** Paste a link and that page is read and treated as the primary source.
 - **Verified images.** Image links are checked before the model can use them, so it only embeds images that actually load.
 - **Prompt-injection guard.** Text on fetched pages is data, never instructions: instruction-like sentences are stripped before they reach a prompt, and a canary eval set measures how often a planted instruction gets through.
+- **Provider fallback.** Answers stream from Gemini Flash-Lite, then fall back to Gemma 4, NVIDIA Nemotron and Groq if a model fails before its first token (each free tier runs out differently).
+- **MCP server.** The same pipeline as a `gaminai_research(query, mode)` tool for Claude Desktop, Cursor or any MCP client.
 - **Ops.** Every request is logged (model, fallback, latency, time to first token, tokens, research steps); an admin dashboard shows the trends, and thumbs-down answers can be turned into new eval cases with one click.
 
 ## Architecture
@@ -58,7 +60,7 @@ A GitHub Actions workflow runs a 20-question smoke subset on pull requests that 
 
 ## Stack
 
-TypeScript everywhere. **Backend:** Express 5, Vercel AI SDK (Gemini, Groq), Prisma 7, Postgres with pgvector, Tavily, Zod, Vitest. **Frontend:** React 19, Vite, Tailwind 4, Supabase Auth.
+TypeScript everywhere. **Backend:** Express 5, Vercel AI SDK (Gemini, NVIDIA, Groq), MCP SDK, Prisma 7, Postgres with pgvector, Tavily, Zod, Vitest. **Frontend:** React 19, Vite, Tailwind 4, Supabase Auth.
 
 ## Run it locally
 
@@ -75,3 +77,24 @@ cd Backend && npm run eval -- --label my-run --retrieval hybrid   # full eval (u
 cd Backend && npm run eval -- --dataset canary --label canary     # prompt-injection canary set
 cd Backend && npm run eval -- --bucket multi_hop --deep --label deep   # Deep vs Quick
 ```
+
+### Use it from Claude Desktop or Cursor (MCP)
+
+Add this to the client's MCP config (`claude_desktop_config.json` or `.cursor/mcp.json`), with your own path to `Backend/`:
+
+```json
+{
+  "mcpServers": {
+    "gaminai": {
+      "command": "node",
+      "args": [
+        "C:/path/to/Gaminai/Backend/node_modules/ts-node/dist/bin.js",
+        "--transpile-only",
+        "C:/path/to/Gaminai/Backend/mcp.ts"
+      ]
+    }
+  }
+}
+```
+
+It reads keys from `Backend/.env`, so it works from any folder.
