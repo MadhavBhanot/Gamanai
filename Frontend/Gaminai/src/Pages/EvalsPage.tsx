@@ -85,13 +85,16 @@ const EvalsPage = () => {
       // Latest quick run over the same questions and retrieval before this deep run (same prompt version)
       const quickFor = (bucket: string) =>
         (runs ?? [])
-          .filter((r) => r.answerMode !== 'deep' && r.retrieval === deep.retrieval && r.date < deep.date && r.summary.byBucket[bucket])
+          .filter((r) => r.answerMode !== 'deep' && r.model === deep.model && r.retrieval === deep.retrieval && r.date < deep.date && r.summary.byBucket[bucket])
           .at(-1);
       return Object.entries(deep.summary.byBucket).flatMap(([bucket, d]) => {
         const q = quickFor(bucket)?.summary.byBucket[bucket];
         return q ? [{ id: `${deep.file}-${bucket}`, bucket, retrieval: deep.retrieval, quick: q, deep: d }] : [];
       });
     });
+
+  // Runs labelled model-*: the same question subset and retrieval, one answer model each (latest per model)
+  const modelRuns = [...new Map((runs ?? []).filter((r) => r.label.startsWith('model-')).map((r) => [r.model, r])).values()];
 
   return (
     <main className="evals-page">
@@ -285,6 +288,50 @@ const EvalsPage = () => {
                         );
                       }),
                     )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
+
+          {modelRuns.length > 1 ? (
+            <section aria-labelledby="models-title" className="evals-section">
+              <h2 id="models-title">Answer model comparison</h2>
+              <p className="evals-muted">
+                Same {modelRuns[0].summary.overall.n} questions (5 per type), same cached search results and{' '}
+                {CONTEXT_NAMES[modelRuns[0].retrieval ?? 'snippets']?.toLowerCase()} context; only the answer model changes.
+                All run on free tiers, so latency includes provider queueing.
+              </p>
+              <div className="evals-table-wrap">
+                <table className="evals-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Answer model</th>
+                      <th scope="col">Correctness</th>
+                      <th scope="col">Faithfulness</th>
+                      <th scope="col">Citation precision</th>
+                      <th scope="col">False premises caught</th>
+                      <th scope="col">First token p50</th>
+                      <th scope="col">p50 latency</th>
+                      <th scope="col">Tokens / answer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {modelRuns.map((run) => {
+                      const s = run.summary.overall;
+                      return (
+                        <tr key={run.file}>
+                          <th scope="row"><code>{run.model}</code>{s.errors ? ` (${s.errors} failed)` : ''}</th>
+                          <td>{pct(s.correctness)}</td>
+                          <td>{pct(s.faithfulness)}</td>
+                          <td>{pct(s.citationPrecision)}</td>
+                          <td>{pct(run.summary.byBucket.false_premise?.correctness)}</td>
+                          <td>{secs(s.ttftP50Ms)}</td>
+                          <td>{secs(s.latencyP50Ms)}</td>
+                          <td>{Math.round(totalTokens(s)).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

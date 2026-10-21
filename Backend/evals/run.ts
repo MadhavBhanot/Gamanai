@@ -72,7 +72,8 @@ function pacerFor(ref: ModelRef) {
   let pacer = pacers.get(ref.label);
   if (!pacer) {
     const env = (key: string) => Number(process.env[`EVAL_${ref.provider.toUpperCase()}_${key}`]);
-    const limits = FREE_TIER_LIMITS[ref.provider];
+    // Gemma shares the Gemini key but has its own, much smaller token limit
+    const limits = ref.modelId.startsWith("gemma") ? { tpm: 16_000, rpm: 30 } : FREE_TIER_LIMITS[ref.provider];
     pacer = {
       tokens: new TokenPacer((env("TPM") || limits.tpm) * 0.9),
       requests: new TokenPacer((env("RPM") || limits.rpm) * 0.9),
